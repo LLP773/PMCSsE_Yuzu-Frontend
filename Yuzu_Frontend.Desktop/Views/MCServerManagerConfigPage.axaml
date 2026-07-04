@@ -1,0 +1,665 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Yuzu_Frontend.Desktop.Views;assembly=Yuzu_Frontend.Desktop"
+             xmlns:models="clr-namespace:Yuzu_Frontend.Models;assembly=Yuzu_Frontend"
+             xmlns:pg="clr-namespace:Yuzu_Frontend.Models.PropertyGrid;assembly=Yuzu_Frontend"
+             xmlns:ctrls="clr-namespace:Yuzu_Frontend.Desktop.Controls"
+             xmlns:avaloniaIcon="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:sukiui="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+             xmlns:suki="https://github.com/kikipoulet/SukiUI"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:Yuzu_Frontend.Desktop.Converters;assembly=Yuzu_Frontend.Desktop"
+             x:Class="Yuzu_Frontend.Desktop.Views.MCServerManagerConfigPage"
+             mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
+             x:DataType="models:MCServerManagerConfigViewModel">
+
+    <UserControl.Resources>
+        <!--
+            PropertyGridTemplateSelector 是 ResourceDictionary，可直接在其中添加 DataTemplate。
+            Build 方法通过 param.GetType().Name 作为 key 查找 DataTemplate，
+            因此 x:Key="FilePathViewModel" 会自动匹配 FilePathViewModel 类型。
+            浏览按钮的 Click 事件由 ConfigPage.axaml.cs 的 OnBrowseClick 处理。
+        -->
+        <ctrls:YuzuPropertyGridTemplateSelector x:Key="PropertyGridTemplateSelector" UseSukiHost="True"></ctrls:YuzuPropertyGridTemplateSelector>
+        <!--
+            分区名称 → Material 图标枚举 的转换器。
+            通过直接绑定分区名字符串得到图标 Kind，避免依赖代码隐藏遍历可视化树找容器；
+            在 ListBoxItem 虚拟化/延迟生成/从缓存恢复时图标都能立即渲染。
+        -->
+        <converters:SectionNameToIconKindConverter x:Key="SectionNameToIconKindConverter" />
+    </UserControl.Resources>
+
+    <Grid ColumnDefinitions="280,*,240" ColumnSpacing="0">
+        <Border Grid.Column="0" Background="{DynamicResource ThemeCardLayerBackground}" CornerRadius="12,0,0,12">
+            <Grid RowDefinitions="Auto,90,*">
+                <Border Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="管理器列表" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" />
+                        <TextBlock Text="选择一个管理器查看配置" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1"
+                        Padding="16,0,16,8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="后端服务"
+                                   FontSize="12"
+                                   FontWeight="Medium"
+                                   Foreground="{DynamicResource SecondaryTextBrush}" />
+
+                        <ComboBox x:Name="BackendComboBox"
+                                  ItemsSource="{Binding AvailableBackends}"
+                                  SelectedItem="{Binding SelectedBackend, Mode=TwoWay}"
+                                  PlaceholderText="选择后端服务"
+                                  Padding="12,8"
+                                  CornerRadius="8"
+                                  BorderThickness="1"
+                                  BorderBrush="{DynamicResource DividerBrush}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="models:ConnectionBackendEntry">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Background="{DynamicResource PrimaryBrush}" Opacity="0.15"
+                                                CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="{Binding BackendId}" FontSize="11" FontFamily="Consolas"
+                                                       Foreground="{DynamicResource PrimaryBrush}" FontWeight="Bold" />
+                                        </Border>
+                                        <TextBlock Text="{Binding BackendName}" FontSize="13"
+                                                   Foreground="{DynamicResource PrimaryTextBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <sukiui:GlassCard Grid.Row="2"
+                                  Margin="20,0,20,20"
+                                  Padding="16,8,16,8">
+                    <ListBox x:Name="ManagerList"
+                             ItemsSource="{Binding Managers}"
+                             SelectedItem="{Binding SelectedManager, Mode=TwoWay}"
+                             SelectionMode="Single"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             MinHeight="200"
+                             MaxHeight="1200"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="Stretch"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Padding" Value="10" />
+                                <Setter Property="Margin" Value="0,3" />
+                                <Setter Property="MinHeight" Value="60" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                <Setter Property="Cursor" Value="Hand" />
+                                <Setter Property="CornerRadius" Value="8" />
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                            </Style>
+                            <Style Selector="ListBoxItem:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
+                                <Setter Property="Opacity" Value="0.08" />
+                            </Style>
+                            <Style Selector="ListBoxItem:selected">
+                                <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+                                <Setter Property="Foreground" Value="White" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="Opacity" Value="1" />
+                            </Style>
+                            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"
+                                      MinHeight="52"
+                                      RowDefinitions="Auto,Auto,Auto">
+                                    <!-- 第 1 行：管理器名称（主信息，大字号突出） -->
+                                    <TextBlock Grid.Row="0"
+                                               Text="{Binding MCServerName, FallbackValue='未命名服务端'}"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center" />
+                                    <!-- 第 2 行：后端 ID -->
+                                    <Grid Grid.Row="1" Margin="0,4,0,0" ColumnDefinitions="Auto,*,Auto">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="后端"
+                                                   FontSize="10"
+                                                   Opacity="0.55"
+                                                   VerticalAlignment="Center" />
+                                        <Border Grid.Column="1"
+                                                Margin="6,0,0,0"
+                                                Padding="6,1"
+                                                CornerRadius="4"
+                                                Background="{DynamicResource ThemeAccentBrush}"
+                                                Opacity="0.12"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding BackendId, FallbackValue='-'}"
+                                                       FontSize="10"
+                                                       FontFamily="Consolas"
+                                                       VerticalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                    <!-- 第 3 行：管理器 ID -->
+                                    <Grid Grid.Row="2" Margin="0,3,0,0" ColumnDefinitions="Auto,*,Auto">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="编号"
+                                                   FontSize="10"
+                                                   Opacity="0.55"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1"
+                                                   Margin="6,0,0,0"
+                                                   Text="{Binding ManagerId, FallbackValue='-'}"
+                                                   FontSize="10"
+                                                   FontFamily="Consolas"
+                                                   Opacity="0.75"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </sukiui:GlassCard>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="1" Background="{DynamicResource ThemeBackground}" CornerRadius="0">
+            <Grid RowDefinitions="Auto,*">
+                <Border Background="{DynamicResource ThemeCardLayerBackground}" Padding="20">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="16">
+                        <Button Command="{Binding CancelChanges}"
+                                IsEnabled="{Binding HasChanges}"
+                                Margin="0"
+                                Padding="12,6"
+                                Background="Transparent"
+                                Foreground="{DynamicResource PrimaryTextBrush}"
+                                BorderBrush="{DynamicResource DividerBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <avaloniaIcon:MaterialIcon Kind="Refresh" Width="16" Height="16" />
+                                <TextBlock Text="取消" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding SaveConfig}"
+                                IsEnabled="{Binding CanSave}"
+                                Margin="0"
+                                Padding="12,6"
+                                Background="{DynamicResource PrimaryBrush}"
+                                Foreground="White"
+                                CornerRadius="8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <avaloniaIcon:MaterialIcon Kind="Download" Width="16" Height="16" />
+                                <TextBlock Text="保存" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <sukiui:BusyArea Grid.Row="1" IsBusy="{Binding IsLoading}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" x:Name="ContentScrollViewer">
+                        <StackPanel Spacing="0">
+                            <Border IsVisible="{Binding HasError}" Margin="20,20,20,0">
+                                <sukiui:GlassCard Padding="20">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <Border Background="{DynamicResource ErrorBrush}" Opacity="0.2" Padding="12" CornerRadius="12">
+                                            <avaloniaIcon:MaterialIcon Kind="AlertCircle" Width="32" Height="32" Foreground="{DynamicResource ErrorBrush}" />
+                                        </Border>
+                                        <StackPanel>
+                                            <TextBlock Text="加载失败" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ErrorBrush}" />
+                                            <TextBlock Text="{Binding ErrorMessage}" FontSize="13" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </sukiui:GlassCard>
+                            </Border>
+
+                            <Border IsVisible="{Binding IsManagerSelected}">
+                                <StackPanel>
+                                    <sukiui:GlassCard x:Name="BasicSection" Margin="20,20,20,0" Padding="20">
+                                        <StackPanel Spacing="16">
+                                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                                <Border Background="{DynamicResource PrimaryBrush}" Opacity="0.2" Padding="8" CornerRadius="8">
+                                                    <avaloniaIcon:MaterialIcon Kind="ViewGridOutline" Width="24" Height="24" Foreground="{DynamicResource PrimaryBrush}" />
+                                                </Border>
+                                                <StackPanel>
+                                                    <TextBlock Text="配置编辑" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                    <TextBlock Text="通过 PropertyGrid 自动渲染分类配置（基本设置 / 备份设置 / 在线聊天）" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                                            <!--
+                                                PropertyGrid 通过反射读取 FormModel 的 [Category] 和 [DisplayName] 属性，
+                                                自动生成分类表单。基本设置、备份设置、在线聊天三个分类均由此处渲染。
+                                                备份排除、远程备份因含集合编辑器与条件显示字段，暂保留手动布局。
+                                            -->
+                                            <ctrls:YuzuPropertyGrid Item="{Binding FormModel}">
+                                                <ctrls:YuzuPropertyGrid.DataTemplates>
+                                                    <StaticResource ResourceKey="PropertyGridTemplateSelector" />
+                                                </ctrls:YuzuPropertyGrid.DataTemplates>
+                                            </ctrls:YuzuPropertyGrid>
+                                        </StackPanel>
+                                    </sukiui:GlassCard>
+
+                                <sukiui:GlassCard x:Name="ExclusionSection" Margin="20,20,20,0" Padding="20">
+                                    <StackPanel Spacing="16">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <Border Background="{DynamicResource WarningBrush}" Opacity="0.2" Padding="8" CornerRadius="8">
+                                                <avaloniaIcon:MaterialIcon Kind="FilterList" Width="24" Height="24" Foreground="{DynamicResource WarningBrush}" />
+                                            </Border>
+                                            <StackPanel>
+                                                <TextBlock Text="备份排除" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                <TextBlock Text="排除特定文件/文件夹/扩展名" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                                        <StackPanel Spacing="16">
+                                            <StackPanel Spacing="8">
+                                                <TextBlock Text="排除文件" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBox Text="{Binding NewExcludedFile}"
+                                                             PlaceholderText="输入文件名"
+                                                             Padding="12"
+                                                             CornerRadius="8"
+                                                             BorderThickness="1"
+                                                             BorderBrush="{DynamicResource DividerBrush}" />
+                                                    <Button Command="{Binding AddExcludedFile}"
+                                                            Padding="12"
+                                                            CornerRadius="8"
+                                                            Background="{DynamicResource PrimaryBrush}"
+                                                            Foreground="White">
+                                                        <avaloniaIcon:MaterialIcon Kind="Plus" Width="16" Height="16" />
+                                                    </Button>
+                                                </StackPanel>
+                                                <ListBox ItemsSource="{Binding ExcludedFilesList}"
+                                                         BorderThickness="1"
+                                                         BorderBrush="{DynamicResource DividerBrush}"
+                                                         CornerRadius="8"
+                                                         Height="100">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Padding="8">
+                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="8">
+                                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                                                                    <Button Click="RemoveExcludedFile_Click"
+                                                                            Tag="{Binding}"
+                                                                            Padding="4"
+                                                                            CornerRadius="4"
+                                                                            Background="Transparent"
+                                                                            Foreground="{DynamicResource ErrorBrush}">
+                                                                        <avaloniaIcon:MaterialIcon Kind="Close" Width="14" Height="14" />
+                                                                    </Button>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                            </StackPanel>
+
+                                            <StackPanel Spacing="8">
+                                                <TextBlock Text="排除扩展名" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBox Text="{Binding NewExcludedExtension}"
+                                                             PlaceholderText=".log"
+                                                             Padding="12"
+                                                             CornerRadius="8"
+                                                             BorderThickness="1"
+                                                             BorderBrush="{DynamicResource DividerBrush}" />
+                                                    <Button Command="{Binding AddExcludedExtension}"
+                                                            Padding="12"
+                                                            CornerRadius="8"
+                                                            Background="{DynamicResource PrimaryBrush}"
+                                                            Foreground="White">
+                                                        <avaloniaIcon:MaterialIcon Kind="Plus" Width="16" Height="16" />
+                                                    </Button>
+                                                </StackPanel>
+                                                <ListBox ItemsSource="{Binding ExcludedFileExtensionsList}"
+                                                         BorderThickness="1"
+                                                         BorderBrush="{DynamicResource DividerBrush}"
+                                                         CornerRadius="8"
+                                                         Height="100">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Padding="8">
+                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="8">
+                                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                                                                    <Button Click="RemoveExcludedExtension_Click"
+                                                                            Tag="{Binding}"
+                                                                            Padding="4"
+                                                                            CornerRadius="4"
+                                                                            Background="Transparent"
+                                                                            Foreground="{DynamicResource ErrorBrush}">
+                                                                        <avaloniaIcon:MaterialIcon Kind="Close" Width="14" Height="14" />
+                                                                    </Button>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                            </StackPanel>
+
+                                            <StackPanel Spacing="8">
+                                                <TextBlock Text="排除文件夹" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBox Text="{Binding NewExcludedFolder}"
+                                                             PlaceholderText="world/nether"
+                                                             Padding="12"
+                                                             CornerRadius="8"
+                                                             BorderThickness="1"
+                                                             BorderBrush="{DynamicResource DividerBrush}" />
+                                                    <Button Command="{Binding AddExcludedFolder}"
+                                                            Padding="12"
+                                                            CornerRadius="8"
+                                                            Background="{DynamicResource PrimaryBrush}"
+                                                            Foreground="White">
+                                                        <avaloniaIcon:MaterialIcon Kind="Plus" Width="16" Height="16" />
+                                                    </Button>
+                                                </StackPanel>
+                                                <ListBox ItemsSource="{Binding ExcludedFoldersList}"
+                                                         BorderThickness="1"
+                                                         BorderBrush="{DynamicResource DividerBrush}"
+                                                         CornerRadius="8"
+                                                         Height="100">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Padding="8">
+                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="8">
+                                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                                                                    <Button Click="RemoveExcludedFolder_Click"
+                                                                            Tag="{Binding}"
+                                                                            Padding="4"
+                                                                            CornerRadius="4"
+                                                                            Background="Transparent"
+                                                                            Foreground="{DynamicResource ErrorBrush}">
+                                                                        <avaloniaIcon:MaterialIcon Kind="Close" Width="14" Height="14" />
+                                                                    </Button>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </sukiui:GlassCard>
+
+                                <sukiui:GlassCard x:Name="RemoteBackupSection" Margin="20,20,20,0" Padding="20">
+                                    <StackPanel Spacing="16">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <Border Background="{DynamicResource AccentBrush}" Opacity="0.2" Padding="8" CornerRadius="8">
+                                                <avaloniaIcon:MaterialIcon Kind="CloudUpload" Width="24" Height="24" Foreground="{DynamicResource AccentBrush}" />
+                                            </Border>
+                                            <StackPanel>
+                                                <TextBlock Text="远程备份" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                <TextBlock Text="SFTP远程备份配置" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <Border Height="1" Background="{DynamicResource DividerBrush}" />
+
+                                        <StackPanel Spacing="12">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="本地备份输出目录" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBox Text="{Binding BackupFileOutputDirectory}"
+                                                             PlaceholderText="选择备份目录"
+                                                             Padding="12"
+                                                             CornerRadius="8"
+                                                             BorderThickness="1"
+                                                             BorderBrush="{DynamicResource DividerBrush}"
+                                                             IsReadOnly="True" />
+                                                    <Button Click="BrowseBackupDirectory"
+                                                            Padding="12"
+                                                            CornerRadius="8"
+                                                            Background="{DynamicResource PrimaryBrush}"
+                                                            Foreground="White">
+                                                        <avaloniaIcon:MaterialIcon Kind="FolderOpen" Width="16" Height="16" />
+                                                    </Button>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                                <TextBlock Text="启用SFTP远程备份" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}"
+                                                           VerticalAlignment="Center" />
+                                                <ToggleSwitch IsChecked="{Binding SFTPEnabled}"
+                                                              Margin="0,0,0,0"
+                                                              Width="48"
+                                                              HorizontalAlignment="Right" />
+                                            </StackPanel>
+
+                                            <StackPanel Spacing="12" IsVisible="{Binding SFTPEnabled}">
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock Text="远程备份存放目录" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                    <TextBox Text="{Binding RemoteBackupFileStoreDirectory}"
+                                                             PlaceholderText="/backups"
+                                                             Padding="12"
+                                                             CornerRadius="8"
+                                                             BorderThickness="1"
+                                                             BorderBrush="{DynamicResource DividerBrush}" />
+                                                </StackPanel>
+
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock Text="SFTP主机地址" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                    <TextBox Text="{Binding SFTPHost}"
+                                                             PlaceholderText="127.0.0.1"
+                                                             Padding="12"
+                                                             CornerRadius="8"
+                                                             BorderThickness="1"
+                                                             BorderBrush="{DynamicResource DividerBrush}" />
+                                                </StackPanel>
+
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock Text="SFTP端口" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                    <TextBox Text="{Binding SFTPPort}"
+                                                             PlaceholderText="22"
+                                                             Padding="12"
+                                                             CornerRadius="8"
+                                                             BorderThickness="1"
+                                                             BorderBrush="{DynamicResource DividerBrush}" />
+                                                </StackPanel>
+
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock Text="SFTP用户名" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                    <TextBox Text="{Binding SFTPUserName}"
+                                                             PlaceholderText="username"
+                                                             Padding="12"
+                                                             CornerRadius="8"
+                                                             BorderThickness="1"
+                                                             BorderBrush="{DynamicResource DividerBrush}" />
+                                                </StackPanel>
+
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock Text="SFTP密码" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                    <TextBox Text="{Binding SFTPPassword}"
+                                                             PlaceholderText="password"
+                                                             Padding="12"
+                                                             CornerRadius="8"
+                                                             BorderThickness="1"
+                                                             BorderBrush="{DynamicResource DividerBrush}" />
+                                                </StackPanel>
+
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock Text="缓冲区大小 (MiB)" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                                    <TextBox Text="{Binding SFTPBufferSize}"
+                                                             PlaceholderText="1"
+                                                             Padding="12"
+                                                             CornerRadius="8"
+                                                             BorderThickness="1"
+                                                             BorderBrush="{DynamicResource DividerBrush}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </sukiui:GlassCard>
+                                </StackPanel>
+                            </Border>
+
+                            <Border IsVisible="{Binding IsNoManagerSelected}" Margin="20,20,20,20">
+                                <sukiui:GlassCard Padding="40">
+                                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                                        <Border Background="{DynamicResource PrimaryBrush}" Opacity="0.2" Padding="20" CornerRadius="32">
+                                            <avaloniaIcon:MaterialIcon Kind="Server" Width="48" Height="48" Foreground="{DynamicResource PrimaryBrush}" />
+                                        </Border>
+                                        <TextBlock Text="请选择一个管理器" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="从左侧列表中选择一个MC服务端管理器来查看和编辑其配置" FontSize="13" Foreground="{DynamicResource SecondaryTextBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="300" />
+                                    </StackPanel>
+                                </sukiui:GlassCard>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </sukiui:BusyArea>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="2" Background="{DynamicResource ThemeCardLayerBackground}" CornerRadius="0,12,12,0">
+            <Grid RowDefinitions="*,*" RowSpacing="0">
+
+                <!-- ========== 上半部分：配置位置导航 ========== -->
+                <Border Grid.Row="0">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Padding="16,16,16,8">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="配置位置" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                <TextBlock Text="快速跳转到指定配置区域" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Row="1" Padding="8,0,8,8">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ListBox x:Name="SectionList"
+                                         ItemsSource="{Binding SectionHeaders}"
+                                         SelectedItem="{Binding ActiveSection, Mode=TwoWay}"
+                                         SelectionMode="Single"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Margin="0">
+                                    <ListBox.Styles>
+                                        <Style Selector="ListBoxItem">
+                                            <Setter Property="Padding" Value="12,8" />
+                                            <Setter Property="Margin" Value="0,2" />
+                                            <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                            <Setter Property="Cursor" Value="Hand" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Style.Animations>
+                                                <Animation Duration="0:0:0.2">
+                                                    <KeyFrame Cue="0%">
+                                                        <Setter Property="Background" Value="Transparent" />
+                                                        <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+                                                    </KeyFrame>
+                                                    <KeyFrame Cue="100%">
+                                                        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+                                                        <Setter Property="Foreground" Value="White" />
+                                                    </KeyFrame>
+                                                </Animation>
+                                            </Style.Animations>
+                                        </Style>
+                                        <Style Selector="ListBoxItem:selected">
+                                            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+                                            <Setter Property="Foreground" Value="White" />
+                                            <Setter Property="FontWeight" Value="Medium" />
+                                        </Style>
+                                        <Style Selector="ListBoxItem:hover:not(:selected)">
+                                            <Setter Property="Background" Value="{DynamicResource PrimaryTextBrush}" />
+                                            <Setter Property="Opacity" Value="0.2" />
+                                        </Style>
+                                    </ListBox.Styles>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <avaloniaIcon:MaterialIcon x:Name="SectionIcon" Width="18" Height="18"
+                                                                           Kind="{Binding Converter={StaticResource SectionNameToIconKindConverter}, FallbackValue=Settings}" />
+                                                <TextBlock Text="{Binding}" FontSize="14" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- 上下分隔线 -->
+                <Border Grid.Row="0" Grid.RowSpan="2"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        Height="1"
+                        Background="{DynamicResource DividerBrush}"
+                        IsHitTestVisible="False" />
+
+                <!-- ========== 下半部分：配置预览 ========== -->
+                <Border Grid.Row="1">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Padding="16,8,16,8">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="配置预览" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource PrimaryTextBrush}" />
+                                <TextBlock Text="实时显示当前配置值" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Row="1" Padding="8,0,8,8">
+                            <!--
+                                预览面板：绑定到 FormModel，只读显示所有字段的当前值。
+                                使用 ScrollViewer 支持字段较多时滚动查看。
+                                参考 SukiUI Demo PropertyGridView 的 Form Output 设计。
+                            -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer.Styles>
+                                    <Style Selector="TextBox">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                    </Style>
+                                </ScrollViewer.Styles>
+                                <StackPanel DataContext="{Binding FormModel}" Spacing="2" Margin="4,0">
+
+                                    <!-- 基本设置分类 -->
+                                    <TextBlock Text="基本设置" FontSize="12" FontWeight="Bold"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               Margin="0,8,0,2" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="服务端名称:  " Text="{Binding MCServerName}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="服务端类型:  " Text="{Binding MCServerType}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="服务端目录:  " Text="{Binding MCServerDirectory}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="Java路径:  " Text="{Binding JavaPath}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="启动参数:  " Text="{Binding StartUpArguments}" FontSize="12" />
+
+                                    <!-- 备份设置分类 -->
+                                    <TextBlock Text="备份设置" FontSize="12" FontWeight="Bold"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               Margin="0,8,0,2" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="自动备份:  " Text="{Binding AutoBackupEnabled}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="定时模式:  " Text="{Binding BackupTimingMode}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="间隔天数:  " Text="{Binding DayInterval}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="特定时间:  " Text="{Binding SpecificTime}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="时间间隔:  " Text="{Binding TimeInterval}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="备份前关服:  " Text="{Binding StopServerBeforeBackup}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="备份模式:  " Text="{Binding BackupMode}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="压缩等级:  " Text="{Binding CompactionLevel}" FontSize="12" />
+
+                                    <!-- 在线聊天分类 -->
+                                    <TextBlock Text="在线聊天" FontSize="12" FontWeight="Bold"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               Margin="0,8,0,2" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="服务器端口:  " Text="{Binding ServerPort}" FontSize="12" />
+                                    <TextBox Classes="NoShadow" suki:TextBoxExtensions.Prefix="社交平台:  " Text="{Binding ThirdPartySocialPlatformName}" FontSize="12" Margin="0,0,0,8" />
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

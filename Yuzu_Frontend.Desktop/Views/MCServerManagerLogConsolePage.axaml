@@ -1,0 +1,491 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Yuzu_Frontend.Desktop.Views;assembly=Yuzu_Frontend.Desktop"
+             xmlns:avaloniaIcon="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:sukiui="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+             xmlns:vm="clr-namespace:Yuzu_Frontend.Models;assembly=Yuzu_Frontend"
+             xmlns:desktopVm="clr-namespace:Yuzu_Frontend.Models;assembly=Yuzu_Frontend.Desktop"
+             xmlns:codewf="clr-namespace:CodeWF.LogViewer.Avalonia;assembly=CodeWF.LogViewer.Avalonia"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             x:Class="Yuzu_Frontend.Desktop.Views.MCServerManagerLogConsolePage"
+             x:DataType="local:MCServerManagerLogConsolePage"
+             mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720">
+
+    <Grid Margin="24,20,24,24">
+        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
+            <!-- 顶部标题栏 -->
+            <Grid Grid.Row="0"
+                  ColumnDefinitions="Auto,*,Auto"
+                  ColumnSpacing="16">
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="MC服务端管理器日志控制台"
+                               FontSize="18"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="查看和管理各服务端管理器的日志输出"
+                               Opacity="0.6"
+                               FontSize="12" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            VerticalAlignment="Center">
+
+                    <Button Command="{Binding ViewModel.RetryLoadCommand, FallbackValue={x:Null}}"
+                            Classes="Flat Rounded"
+                            Height="34"
+                            FontSize="13"
+                            IsVisible="{Binding ViewModel.HasError}">
+
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <avaloniaIcon:MaterialIcon
+                                Kind="Refresh"
+                                Width="16"
+                                Height="16" />
+                            <TextBlock Text="重试加载" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="ExportTxtButton"
+                            Click="ExportTxtButton_Click"
+                            Classes="Flat Rounded"
+                            Height="34"
+                            FontSize="13"
+                            ToolTip.Tip="导出当前所有日志为 TXT 文件"
+                            IsEnabled="{Binding ViewModel.LogCount, Converter={x:Static local:IntGreaterThanZeroConverter.Instance}, FallbackValue=False}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <avaloniaIcon:MaterialIcon Kind="FileDocumentOutline" Width="16" Height="16" />
+                            <TextBlock Text="导出TXT" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="ExportCsvButton"
+                            Click="ExportCsvButton_Click"
+                            Classes="Flat Rounded"
+                            Height="34"
+                            FontSize="13"
+                            ToolTip.Tip="导出当前所有日志为 CSV 表格（可被 Excel/WPS 打开）"
+                            IsEnabled="{Binding ViewModel.LogCount, Converter={x:Static local:IntGreaterThanZeroConverter.Instance}, FallbackValue=False}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <avaloniaIcon:MaterialIcon Kind="FileTableOutline"
+                                                       Width="16"
+                                                       Height="16" />
+                            <TextBlock Text="导出CSV" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="ClearLogsButton"
+                            Click="ClearLogsButton_Click"
+                            Classes="Flat Rounded"
+                            Height="34"
+                            FontSize="13">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <avaloniaIcon:MaterialIcon Kind="TrashCan"
+                                                       Width="16"
+                                                       Height="16" />
+                            <TextBlock Text="清空日志" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="GetOlderLogsButton"
+                            Click="GetOlderLogsButton_Click"
+                            Classes="Flat Rounded"
+                            Height="34"
+                            FontSize="13"
+                            IsEnabled="{Binding ViewModel.CanGetOlderLogs, FallbackValue=False}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <avaloniaIcon:MaterialIcon Kind="Download"
+                                                       Width="16"
+                                                       Height="16" />
+                            <TextBlock Text="加载更多" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- 主体内容 -->
+            <sukiui:GlassCard Grid.Row="1" Padding="0" IsAnimated="True">
+                <Grid ColumnDefinitions="*,240" ColumnSpacing="0"
+                      RowDefinitions="Auto,Auto,*">
+                    <!-- 工具栏：管理器选择 + 日志级别过滤 -->
+                    <Border Grid.Row="0" Grid.ColumnSpan="2"
+                            Background="{DynamicResource ThemeCardLayerBackground}"
+                            CornerRadius="12,12,0,0"
+                            Padding="16,10,16,10"
+                            BorderBrush="{DynamicResource ThemeBorderBrush}"
+                            BorderThickness="0,0,0,1">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                            <!-- 左侧：管理器选择 + 最低日志级别 -->
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <!-- 管理器选择：树状结构（后端分组 + 管理器子节点）
+                                     使用 Button+Popup 实现"下拉树"效果，替代原 ComboBox -->
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <avaloniaIcon:MaterialIcon Kind="Server" Width="16" Height="16" Opacity="0.6" />
+                                    <TextBlock Text="当前管理器" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" MinWidth="80" />
+
+                                    <!-- 下拉触发器：显示当前选中管理器摘要 -->
+                                    <Button x:Name="ManagerTreeDropButton"
+                                            Click="ManagerTreeDropButton_Click"
+                                            Classes="Flat Rounded"
+                                            HorizontalContentAlignment="Stretch"
+                                            MinWidth="260"
+                                            Height="32"
+                                            Padding="10,0">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <!-- 选中状态显示 -->
+                                            <ContentPresenter Content="{Binding #ManagerTreeDropButton.Tag, FallbackValue={x:Null}}">
+                                                <ContentPresenter.ContentTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding FallbackValue='请选择管理器...'}"
+                                                                   FontSize="13"
+                                                                   Opacity="0.7"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   VerticalAlignment="Center" />
+                                                    </DataTemplate>
+                                                </ContentPresenter.ContentTemplate>
+                                            </ContentPresenter>
+                                            <Grid Grid.Column="1">
+                                                <Grid.Styles>
+                                                    <Style Selector="avaloniaIcon|MaterialIcon">
+                                                        <Setter Property="Opacity" Value="0.55" />
+                                                        <Setter Property="Width" Value="14" />
+                                                        <Setter Property="Height" Value="14" />
+                                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                                    </Style>
+                                                </Grid.Styles>
+                                                <avaloniaIcon:MaterialIcon Kind="ChevronDown" />
+                                            </Grid>
+                                        </Grid>
+                                    </Button>
+
+                                    <!-- 下拉式 Popup：内嵌 TreeView，实现两级树状管理器选择 -->
+                                    <Popup x:Name="ManagerTreePopup"
+                                           PlacementTarget="{Binding #ManagerTreeDropButton}"
+                                           Placement="BottomEdgeAlignedLeft"
+                                           WindowManagerAddShadowHint="True"
+                                           IsLightDismissEnabled="True">
+                                        <Border Background="{DynamicResource ThemeCardBackground}"
+                                                CornerRadius="8"
+                                                BoxShadow="0 4 24 0 #33000000"
+                                                BorderBrush="{DynamicResource ThemeBorderBrush}"
+                                                BorderThickness="1"
+                                                Padding="6,6"
+                                                MinWidth="320"
+                                                MaxHeight="420">
+                                            <TreeView x:Name="ManagerTreeView"
+                                                      ItemsSource="{Binding ViewModel.ManagerTree}"
+                                                      SelectedItem="{Binding ViewModel.SelectedTreeNode, Mode=TwoWay}"
+                                                      BorderThickness="0"
+                                                      Background="Transparent"
+                                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                                <TreeView.Styles>
+                                                    <!-- 让 TreeViewItem 的内容占据整行，视觉对齐更好 -->
+                                                    <Style Selector="TreeViewItem">
+                                                        <Setter Property="Padding" Value="0,2" />
+                                                        <Setter Property="FontSize" Value="13" />
+                                                    </Style>
+                                                    <Style Selector="TreeViewItem:selected /template/ ContentPresenter#PART_HeaderPresenter">
+                                                        <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
+                                                        <Setter Property="Foreground" Value="{DynamicResource ThemeAccentForegroundBrush}" />
+                                                        <Setter Property="CornerRadius" Value="4" />
+                                                    </Style>
+                                                </TreeView.Styles>
+
+                                                <!-- 树模板：按 DataType 自动匹配两级节点（Avalonia 12 TreeDataTemplate 无 ItemTemplate 属性） -->
+                                                <TreeView.DataTemplates>
+                                                    <!-- 一级：后端分组节点（不可选中，视觉弱化，用作分组头） -->
+                                                    <TreeDataTemplate DataType="{x:Type desktopVm:MCServerManagerLogConsoleViewModel+BackendGroupNode}"
+                                                                      ItemsSource="{Binding Children}">
+                                                        <StackPanel Orientation="Horizontal" Spacing="6" IsHitTestVisible="False">
+                                                            <avaloniaIcon:MaterialIcon Kind="DatabaseOutline"
+                                                                                       Width="14" Height="14"
+                                                                                       Opacity="0.7"
+                                                                                       VerticalAlignment="Center"
+                                                                                       Foreground="{DynamicResource ThemeAccentBrush}" />
+                                                            <TextBlock Text="{Binding BackendId}"
+                                                                       FontWeight="SemiBold"
+                                                                       FontSize="12"
+                                                                       Opacity="0.85"
+                                                                       VerticalAlignment="Center"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Text="{Binding Children.Count, StringFormat='({0})'}"
+                                                                       FontSize="11"
+                                                                       Opacity="0.5"
+                                                                       VerticalAlignment="Center" />
+                                                        </StackPanel>
+                                                    </TreeDataTemplate>
+                                                    <!-- 二级：管理器子节点（可选中） -->
+                                                    <DataTemplate DataType="{x:Type desktopVm:MCServerManagerLogConsoleViewModel+ManagerItemNode}">
+                                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="0,1">
+                                                            <Ellipse Grid.Column="0" Width="8" Height="8"
+                                                                     VerticalAlignment="Center"
+                                                                     Fill="{Binding Item.IsMCServerRunning, Converter={x:Static local:StatusColorConverter.Instance}}" />
+                                                            <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="0" MaxWidth="260">
+                                                                <TextBlock Text="{Binding Item.MCServerName}"
+                                                                           FontSize="13"
+                                                                           VerticalAlignment="Center"
+                                                                           TextTrimming="CharacterEllipsis" />
+                                                                <TextBlock Text="{Binding Item.ManagerId, StringFormat='ID: {0}'}"
+                                                                           FontSize="10"
+                                                                           Opacity="0.5"
+                                                                           TextTrimming="CharacterEllipsis" />
+                                                            </StackPanel>
+                                                            <TextBlock Grid.Column="2" Text="{Binding Item.MCServerStatus}"
+                                                                       FontSize="11"
+                                                                       Opacity="0.55"
+                                                                       VerticalAlignment="Center" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </TreeView.DataTemplates>
+                                            </TreeView>
+                                        </Border>
+                                    </Popup>
+
+                                    <Button x:Name="RefreshManagersButton"
+                                            Click="RefreshManagersButton_Click"
+                                            Classes="Flat Rounded"
+                                            ToolTip.Tip="刷新管理器列表">
+                                        <avaloniaIcon:MaterialIcon Kind="Refresh"/>
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- 管理器启停控制按钮组：位于日志区域上方，在管理器选择器下一行 -->
+                                <StackPanel Orientation="Horizontal" Spacing="8"
+                                            IsVisible="{Binding ViewModel.HasSelectedManager, FallbackValue=False}">
+                                    <avaloniaIcon:MaterialIcon Kind="PowerSettings" Width="16" Height="16" Opacity="0.6" VerticalAlignment="Center" />
+                                    <TextBlock Text="管理器控制" FontSize="12" VerticalAlignment="Center" MinWidth="80" Opacity="0.8" />
+
+                                    <Button Command="{Binding ViewModel.StartServerCommand, FallbackValue={x:Null}}"
+                                            Classes="Flat Rounded"
+                                            Height="30"
+                                            FontSize="12"
+                                            Padding="14,0"
+                                            IsEnabled="{Binding ViewModel.StartServerCommand, FallbackValue=False}"
+                                            ToolTip.Tip="启动当前选中的管理器">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <avaloniaIcon:MaterialIcon Kind="Play" Width="14" Height="14" Foreground="#4CAF50" />
+                                            <TextBlock Text="启动" />
+                                            <avaloniaIcon:MaterialIcon x:Name="StartBusyIcon"
+                                                                       Kind="ProgressClock"
+                                                                       Width="14" Height="14"
+                                                                       Opacity="0.8"
+                                                                       Classes="Rotate"
+                                                                       IsVisible="{Binding ViewModel.IsPerformingControlAction, FallbackValue=False}" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Command="{Binding ViewModel.StopServerCommand, FallbackValue={x:Null}}"
+                                            Classes="Flat Rounded"
+                                            Height="30"
+                                            FontSize="12"
+                                            Padding="14,0"
+                                            IsEnabled="{Binding ViewModel.StopServerCommand, FallbackValue=False}"
+                                            ToolTip.Tip="向管理器发送停止命令（优雅关闭）">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <avaloniaIcon:MaterialIcon Kind="Stop" Width="14" Height="14" Foreground="#FFB74D" />
+                                            <TextBlock Text="停止" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Command="{Binding ViewModel.ForceKillServerCommand, FallbackValue={x:Null}}"
+                                            Classes="Flat Rounded"
+                                            Height="30"
+                                            FontSize="12"
+                                            Padding="14,0"
+                                            IsEnabled="{Binding ViewModel.ForceKillServerCommand, FallbackValue=False}"
+                                            ToolTip.Tip="强制终止管理器进程（可能导致数据丢失）">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <avaloniaIcon:MaterialIcon Kind="CloseOctagonOutline" Width="14" Height="14" Foreground="#EF5350" />
+                                            <TextBlock Text="强制停止" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Command="{Binding ViewModel.RestartServerCommand, FallbackValue={x:Null}}"
+                                            Classes="Flat Rounded"
+                                            Height="30"
+                                            FontSize="12"
+                                            Padding="14,0"
+                                            IsEnabled="{Binding ViewModel.RestartServerCommand, FallbackValue=False}"
+                                            ToolTip.Tip="停止后自动重启管理器">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <avaloniaIcon:MaterialIcon Kind="Restart" Width="14" Height="14" Foreground="#42A5F5" />
+                                            <TextBlock Text="重启" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- 操作中提示 -->
+                                    <TextBlock Text="{Binding ViewModel.ControlActionText, FallbackValue=''}"
+                                               FontSize="11"
+                                               Opacity="0.6"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0,0,0"
+                                               IsVisible="{Binding ViewModel.IsPerformingControlAction, FallbackValue=False}" />
+                                </StackPanel>
+
+                                <!-- 日志级别过滤：最低级别选择器，LogView 内置不同级别不同颜色 -->
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <avaloniaIcon:MaterialIcon Kind="FilterVariant" Width="16" Height="16" Opacity="0.6" VerticalAlignment="Center" />
+                                    <TextBlock Text="最低日志级别" FontSize="12" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding ViewModel.LogLevelOptions}"
+                                              SelectedItem="{Binding ViewModel.MinimumLevel, Mode=TwoWay}"
+                                              MinWidth="120"
+                                              Height="28"
+                                              FontSize="12" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- 加载状态覆盖层 -->
+                    <Border Grid.Row="2" Grid.Column="0"
+                            Background="{DynamicResource ThemeCardBackground}"
+                            IsVisible="{Binding ViewModel.IsLoading}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Margin="48">
+                            <avaloniaIcon:MaterialIcon Kind="Refresh" Width="48" Height="48"
+                                                       Foreground="{DynamicResource ThemeAccentBrush}" />
+                            <TextBlock Text="正在加载日志..." FontSize="14" Opacity="0.7" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 错误状态（含重试按钮） -->
+                    <Border Grid.Row="2" Grid.Column="0"
+                            Background="{DynamicResource ThemeCardBackground}"
+                            IsVisible="{Binding ViewModel.HasError}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" Margin="48">
+                            <avaloniaIcon:MaterialIcon Kind="AlertCircle" Width="64" Height="64" Opacity="0.7"
+                                                       Foreground="#FF6B6B" />
+                            <TextBlock Text="{Binding ViewModel.ErrorMessage}" FontSize="16" Opacity="0.75" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="600" />
+                            <Button Command="{Binding ViewModel.RetryLoadCommand}"
+                                    Classes="Flat Rounded Accent"
+                                    HorizontalAlignment="Center"
+                                    Height="34">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <avaloniaIcon:MaterialIcon Kind="Refresh" Width="16" Height="16" />
+                                    <TextBlock Text="点击重试" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 管理器未运行状态 -->
+                    <Border Grid.Row="2" Grid.Column="0"
+                            Background="{DynamicResource ThemeCardBackground}"
+                            IsVisible="{Binding ViewModel.IsManagerStopped}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" Margin="48">
+                            <avaloniaIcon:MaterialIcon Kind="PowerOff" Width="64" Height="64" Opacity="0.7"
+                                                       Foreground="#FFFFB74D" />
+                            <TextBlock Text="当前管理器未运行" FontSize="18" FontWeight="SemiBold" Opacity="0.85" />
+                            <TextBlock Text="请先启动管理器，然后才能查看日志输出" FontSize="14" Opacity="0.6" TextAlignment="Center" MaxWidth="400" />
+                            <Button Click="RefreshManagersButton_Click"
+                                    Classes="Flat Rounded Accent"
+                                    HorizontalAlignment="Center"
+                                    Height="34">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <avaloniaIcon:MaterialIcon Kind="Refresh" Width="16" Height="16" />
+                                    <TextBlock Text="刷新状态" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 未选管理器的空状态 -->
+                    <Border Grid.Row="2" Grid.Column="0"
+                            Background="{DynamicResource ThemeCardBackground}"
+                            IsVisible="{Binding ViewModel.IsEmpty}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Margin="48">
+                            <avaloniaIcon:MaterialIcon Kind="FileText" Width="64" Height="64" Opacity="0.3" />
+                            <TextBlock Text="请从上方选择一个服务端管理器开始查看日志" FontSize="16" Opacity="0.6" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 日志显示：CodeWF.LogViewer.Avalonia.LogView
+                         从 Logger.UserLogs 全局 feed 自动读取，内置级别颜色、虚拟化滚动、自动刷新 -->
+                    <Border x:Name="LogViewerHost"
+                            Grid.Row="2" Grid.Column="0"
+                            Background="{DynamicResource ThemeControlBackground}"
+                            Padding="4,0"
+                            IsVisible="{Binding ViewModel.HasLogs}">
+                        <codewf:LogView x:Name="LogView"
+                                        MinimumLevel="{Binding ViewModel.MinimumLevel, Mode=TwoWay}"
+                                        MaximumLevel="Fatal"
+                                        MaxDisplayCount="5000"
+                                        RefreshInterval="0:0:0.200"
+                                        TimestampFormat="HH:mm:ss.fff"
+                                        LogLineHeightMultiplier="1.0" />
+                    </Border>
+
+                    <!-- 右侧管理器列表（保留原有操作逻辑） -->
+                    <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1"
+                            Background="{DynamicResource ThemeCardLayerBackground}"
+                            CornerRadius="0,0,12,0"
+                            BorderBrush="{DynamicResource ThemeBorderBrush}"
+                            BorderThickness="1,0,0,0">
+                        <Grid RowDefinitions="Auto,*" RowSpacing="0">
+                            <Border Padding="12" BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="0,0,0,1">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <avaloniaIcon:MaterialIcon Kind="Server" Width="16" Height="16" />
+                                    <TextBlock Text="服务端管理器" FontSize="13" FontWeight="Medium" />
+                                </StackPanel>
+                            </Border>
+
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <ListBox x:Name="ManagerListBox"
+                                         ItemsSource="{Binding ViewModel.ManagerList}"
+                                         SelectedItem="{Binding ViewModel.SelectedManager, Mode=TwoWay}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:MCServerManagerItemModel">
+                                            <Border Margin="0,0,0,2">
+                                                <StackPanel Orientation="Vertical" Margin="12,8">
+                                                    <TextBlock Text="{Binding MCServerName}" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding ManagerId}" FontSize="11" Opacity="0.5" TextTrimming="CharacterEllipsis" />
+                                                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,4,0,0">
+                                                        <Ellipse Width="8" Height="8"
+                                                                 Fill="{Binding IsMCServerRunning, Converter={x:Static local:StatusColorConverter.Instance}}" />
+                                                        <TextBlock Text="{Binding MCServerStatus}" FontSize="11" Opacity="0.6" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </sukiui:GlassCard>
+
+            <!-- 底部：命令输入条 + 日志条数统计 -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="16"
+                  IsVisible="{Binding ViewModel.HasSelectedManager, FallbackValue=False}">
+                <Grid Grid.Column="0" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <TextBox x:Name="CommandTextBox"
+                             FontFamily="Consolas"
+                             FontSize="13"
+                             Text="{Binding ViewModel.CommandText, Mode=TwoWay}"
+                             PlaceholderText="输入控制台命令后按回车发送（↑/↓ 浏览历史）..."
+                             KeyDown="CommandTextBox_KeyDown"
+                             AcceptsReturn="False"
+                             IsEnabled="{Binding ViewModel.IsManagerStopped, Converter={x:Static local:BoolNegationConverter.Instance}, FallbackValue=True}" />
+                    <Button Grid.Column="1"
+                            x:Name="SendCommandButton"
+                            Click="SendCommandButton_Click"
+                            Classes="Rounded Accent"
+                            Height="36"
+                            IsEnabled="{Binding ViewModel.IsSendingCommand, Converter={x:Static local:BoolNegationConverter.Instance}, FallbackValue=False}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <avaloniaIcon:MaterialIcon Kind="{Binding ViewModel.IsSendingCommand, Converter={x:Static local:SendButtonIconConverter.Instance}, FallbackValue=Send}"
+                                                       Width="16" Height="16" />
+                            <TextBlock Text="{Binding ViewModel.IsSendingCommand, Converter={x:Static local:SendButtonTextConverter.Instance}, FallbackValue=发送}" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding ViewModel.LogCount, StringFormat='共 {0} 条日志'}"
+                           FontSize="13"
+                           Opacity="0.6"
+                           VerticalAlignment="Center" />
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

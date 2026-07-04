@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Project Path="Yuzu_Frontend.Android/Yuzu_Frontend.Android.csproj" />
+  <Project Path="Yuzu_Frontend.Browser/Yuzu_Frontend.Browser.csproj" />
+  <Project Path="Yuzu_Frontend.Desktop/Yuzu_Frontend.Desktop.csproj" />
+  <Project Path="Yuzu_Frontend.iOS/Yuzu_Frontend.iOS.csproj" />
+  <Project Path="Yuzu_Frontend/Yuzu_Frontend.csproj" />
+</Solution>

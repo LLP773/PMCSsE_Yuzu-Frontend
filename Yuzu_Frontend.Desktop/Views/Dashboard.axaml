@@ -1,0 +1,394 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:avaloniaIcon="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
+             xmlns:sukiui="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+             xmlns:vm="clr-namespace:Yuzu_Frontend.Desktop.Models;assembly=Yuzu_Frontend.Desktop"
+             xmlns:local="clr-namespace:Yuzu_Frontend.Desktop.Views;assembly=Yuzu_Frontend.Desktop"
+             x:Class="Yuzu_Frontend.Desktop.Views.Dashboard"
+             x:DataType="local:Dashboard">
+
+    <!-- 主容器：保持 MCServerManagerOverviewPage 一致的外边距 (24,20,24,24) 与 RowSpacing -->
+    <Grid Margin="24,20,24,24"
+          RowDefinitions="Auto,Auto,*,Auto"
+          RowSpacing="16">
+
+        <!-- ============================================================
+             Row 0: 顶部标题栏（标题 + 刷新按钮 + 更新时间）
+             ============================================================ -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <avaloniaIcon:MaterialIcon Kind="ServerNetwork" Width="28" Height="28" Opacity="0.85" />
+                <StackPanel Spacing="2">
+                    <TextBlock Text="服务网络仪表盘"
+                               FontSize="20"
+                               FontWeight="Bold" />
+                    <TextBlock Text="{Binding ViewModel.LastRefreshText, FallbackValue='尚未刷新'}"
+                               FontSize="11"
+                               Opacity="0.55" />
+                </StackPanel>
+            </StackPanel>
+
+            <Button Grid.Column="1"
+                    Command="{Binding ViewModel.RefreshDashboardCommand}"
+                    Classes="Flat"
+                    Padding="14,6">
+                <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6" VerticalAlignment="Center">
+                    <avaloniaIcon:MaterialIcon Grid.Column="0"
+                                               Kind="Refresh"
+                                               Width="16" Height="16"
+                                               Opacity="0.85" />
+                    <TextBlock Grid.Column="1" Text="刷新数据" VerticalAlignment="Center" />
+                </Grid>
+            </Button>
+        </Grid>
+
+        <!-- ============================================================
+             Row 1: 全局统计卡片（与 OverviewPage 相同的 4 列 GlassCard 布局）
+             ============================================================ -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*,*" ColumnSpacing="14">
+
+            <!-- 卡片 1：已连接后端数量 -->
+            <sukiui:GlassCard Grid.Column="0" Padding="16" IsAnimated="True">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="#6170ff">
+                        <avaloniaIcon:MaterialIcon Kind="LinkVariant" Width="20" Height="20"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="White" />
+                    </Border>
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="已连接后端" FontSize="11" Opacity="0.55" />
+                        <TextBlock Text="{Binding ViewModel.ConnectedBackendCount, FallbackValue=0}"
+                                   FontSize="22" FontWeight="Bold" />
+                    </StackPanel>
+                </Grid>
+            </sukiui:GlassCard>
+
+            <!-- 卡片 2：管理器总数 -->
+            <sukiui:GlassCard Grid.Column="1" Padding="16" IsAnimated="True">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="#FF7B61FF">
+                        <avaloniaIcon:MaterialIcon Kind="FolderMultipleOutline" Width="20" Height="20"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="White" />
+                    </Border>
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="管理器总数" FontSize="11" Opacity="0.55" />
+                        <TextBlock Text="{Binding ViewModel.TotalManagerCount, FallbackValue=0}"
+                                   FontSize="22" FontWeight="Bold" />
+                    </StackPanel>
+                </Grid>
+            </sukiui:GlassCard>
+
+            <!-- 卡片 3：正在运行 -->
+            <sukiui:GlassCard Grid.Column="2" Padding="16" IsAnimated="True">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="#ff61a8">
+                        <avaloniaIcon:MaterialIcon Kind="PowerStandby" Width="20" Height="20"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="White" />
+                    </Border>
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="正在运行" FontSize="11" Opacity="0.55" />
+                        <TextBlock Text="{Binding ViewModel.RunningManagerCount, FallbackValue=0}"
+                                   FontSize="22" FontWeight="Bold" />
+                    </StackPanel>
+                </Grid>
+            </sukiui:GlassCard>
+
+            <!-- 卡片 4：已加载 -->
+            <sukiui:GlassCard Grid.Column="3" Padding="16" IsAnimated="True">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="#2D9D7B">
+                        <avaloniaIcon:MaterialIcon Kind="Server" Width="20" Height="20"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="White" />
+                    </Border>
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="已加载" FontSize="11" Opacity="0.55" />
+                        <TextBlock Text="{Binding ViewModel.LoadedManagerCount, FallbackValue=0}"
+                                   FontSize="22" FontWeight="Bold" />
+                    </StackPanel>
+                </Grid>
+            </sukiui:GlassCard>
+
+            <!-- 卡片 5：平均 CPU 使用率 -->
+            <sukiui:GlassCard Grid.Column="4" Padding="16" IsAnimated="True">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="#FF9F43">
+                        <avaloniaIcon:MaterialIcon Kind="Cpu64Bit" Width="20" Height="20"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="White" />
+                    </Border>
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="平均 CPU" FontSize="11" Opacity="0.55" />
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                            <TextBlock Text="{Binding ViewModel.AverageCpuPercent, StringFormat='{}{0:0.0}', FallbackValue=0}"
+                                       FontSize="22" FontWeight="Bold" />
+                            <TextBlock Text="%" Opacity="0.7" FontSize="16" Margin="2,0,0,3" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </sukiui:GlassCard>
+
+            <!-- 卡片 6：内存使用 -->
+            <sukiui:GlassCard Grid.Column="5" Padding="16" IsAnimated="True">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="#54A0FF">
+                        <avaloniaIcon:MaterialIcon Kind="Memory" Width="20" Height="20"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="White" />
+                    </Border>
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="内存使用" FontSize="11" Opacity="0.55" />
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                            <TextBlock Text="{Binding ViewModel.TotalMemoryUsedGigaBytes, StringFormat='{}{0:0.##}', FallbackValue=0}"
+                                       FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text=" / " Opacity="0.6" FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text="{Binding ViewModel.TotalMemoryGigaBytes, StringFormat='{}{0:0.##}', FallbackValue=0}"
+                                       FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text=" GB" Opacity="0.7" FontSize="12" Margin="2,0,0,1" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </sukiui:GlassCard>
+
+        </Grid>
+
+        <!-- ============================================================
+             Row 2: 主体内容（左右两栏：后端卡片 / 管理器概览）
+             ============================================================ -->
+        <Grid Grid.Row="2" ColumnDefinitions="2*,*" ColumnSpacing="16">
+
+            <!-- 左栏：已连接后端状态卡片列表（可滚动） -->
+            <sukiui:GlassCard Grid.Column="0" Padding="16" IsAnimated="True">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- 标题 -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <avaloniaIcon:MaterialIcon Kind="ServerNetwork" Width="18" Height="18" Opacity="0.65" />
+                            <TextBlock Text="后端节点状态" FontWeight="Bold" FontSize="14" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding ViewModel.ConnectedBackendCount, StringFormat='共 {0} 个节点', FallbackValue='共 0 个节点'}"
+                                   FontSize="11" Opacity="0.55" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <!-- 后端卡片列表 -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ViewModel.BackendCards}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" ItemWidth="340" Margin="0,0,6,0" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerTheme>
+                                <ControlTheme TargetType="ContentPresenter">
+                                    <Setter Property="Margin" Value="0,0,10,10" />
+                                </ControlTheme>
+                            </ItemsControl.ItemContainerTheme>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:DashboardBackendCard}">
+                                    <Border Background="Transparent" CornerRadius="10"
+                                            BorderBrush="{DynamicResource SukiBorderBrush}"
+                                            BorderThickness="1"
+                                            Padding="14">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
+                                            <!-- Header: 名称/状态点/ID -->
+                                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                    <Ellipse Width="9" Height="9"
+                                                             HorizontalAlignment="Center"
+                                                             VerticalAlignment="Center"
+                                                             Fill="{Binding ConnectionStatus, Converter={x:Static local:ConnectionStatusBrushConverter.Instance}}" />
+                                                    <StackPanel Spacing="0">
+                                                        <TextBlock Text="{Binding BackendName}"
+                                                                   FontWeight="Bold" FontSize="13"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{Binding BackendId, StringFormat='ID: {}', FallbackValue=''}"
+                                                                   FontSize="10" Opacity="0.55" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <Border Grid.Column="1"
+                                                        VerticalAlignment="Center"
+                                                        Padding="8,3"
+                                                        CornerRadius="6"
+                                                        Background="#206170ff">
+                                                    <TextBlock Text="{Binding ConnectionStatus}"
+                                                               FontSize="11" Foreground="#FF6170ff" />
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- 指标：管理器 运行/加载/总数 -->
+                                            <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ColumnSpacing="6">
+                                                <StackPanel>
+                                                    <TextBlock Text="管理器" FontSize="10" Opacity="0.55" />
+                                                    <TextBlock Text="{Binding ManagerCount}" FontSize="15" FontWeight="Bold" />
+                                                </StackPanel>
+                                                <StackPanel>
+                                                    <TextBlock Text="运行中" FontSize="10" Opacity="0.55" />
+                                                    <TextBlock Text="{Binding RunningManagerCount}" FontSize="15" FontWeight="Bold" Foreground="#FF2D9D7B" />
+                                                </StackPanel>
+                                                <StackPanel>
+                                                    <TextBlock Text="已加载" FontSize="10" Opacity="0.55" />
+                                                    <TextBlock Text="{Binding LoadedManagerCount}" FontSize="15" FontWeight="Bold" Foreground="#FF7B61FF" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- CPU 条 -->
+                                            <Grid Grid.Row="2" RowDefinitions="Auto,Auto" RowSpacing="4">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBlock FontSize="10" Opacity="0.55">
+                                                        <Run Text="CPU" />
+                                                    </TextBlock>
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding CpuUsagePercent, StringFormat='{}{0:0.0} %', FallbackValue='0.0 %'}"
+                                                               FontSize="10" FontWeight="Bold" />
+                                                </Grid>
+                                                <ProgressBar Grid.Row="1"
+                                                             Minimum="0" Maximum="100"
+                                                             Value="{Binding CpuUsagePercent}"
+                                                             Height="5" CornerRadius="3"
+                                                             Background="#20000000"
+                                                             Foreground="#FF9F43"
+                                                             IsIndeterminate="False" ShowProgressText="False" />
+                                            </Grid>
+
+                                            <!-- 内存条 -->
+                                            <Grid Grid.Row="3" RowDefinitions="Auto,Auto" RowSpacing="4">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBlock FontSize="10" Opacity="0.55">
+                                                        <Run Text="内存" />
+                                                    </TextBlock>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding MemoryUsedGigaBytes, StringFormat='{}{0:0.##}'}"
+                                                                   FontSize="10" FontWeight="Bold" />
+                                                        <TextBlock Text=" / " Opacity="0.6" FontSize="10" FontWeight="Bold" />
+                                                        <TextBlock Text="{Binding MemoryTotalGigaBytes, StringFormat='{}{0:0.##} GB'}"
+                                                                   FontSize="10" FontWeight="Bold" />
+                                                    </StackPanel>
+                                                </Grid>
+                                                <ProgressBar Grid.Row="1"
+                                                             Minimum="0" Maximum="100"
+                                                             Value="{Binding MemoryUsagePercent}"
+                                                             Height="5" CornerRadius="3"
+                                                             Background="#20000000"
+                                                             Foreground="#54A0FF"
+                                                             IsIndeterminate="False" ShowProgressText="False" />
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </sukiui:GlassCard>
+
+            <!-- 右栏：管理器快速浏览（跨后端，Top 8） -->
+            <sukiui:GlassCard Grid.Column="1" Padding="16" IsAnimated="True">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <avaloniaIcon:MaterialIcon Kind="GamepadVariantOutline" Width="18" Height="18" Opacity="0.65" />
+                            <TextBlock Text="管理器快速浏览" FontWeight="Bold" FontSize="14" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="1"
+                                   FontSize="11" Opacity="0.55" VerticalAlignment="Center">
+                            <Run Text="Top " /><Run Text="{Binding ViewModel.ManagerOverview.Count, FallbackValue=0}" />
+                        </TextBlock>
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ViewModel.ManagerOverview}">
+                            <ItemsControl.ItemContainerTheme>
+                                <ControlTheme TargetType="ContentPresenter">
+                                    <Setter Property="Margin" Value="0,0,0,8" />
+                                </ControlTheme>
+                            </ItemsControl.ItemContainerTheme>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:DashboardManagerEntry}">
+                                    <Border CornerRadius="8"
+                                            Padding="10,8"
+                                            Background="Transparent"
+                                            BorderBrush="{DynamicResource SukiBorderBrush}"
+                                            BorderThickness="1">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                            <!-- 状态点 -->
+                                            <Ellipse Grid.Column="0"
+                                                     Width="9" Height="9"
+                                                     VerticalAlignment="Center"
+                                                     HorizontalAlignment="Center"
+                                                     Fill="{Binding Converter={x:Static local:ManagerStateConverter.Instance}}" />
+
+                                            <!-- 名称 + 后端 -->
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontWeight="Bold" FontSize="13"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock FontSize="10" Opacity="0.55" TextTrimming="CharacterEllipsis">
+                                                    <Run Text="{Binding BackendName}" /><Run Text=" · " /><Run Text="{Binding ManagerId}" />
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <!-- 状态标签 -->
+                                            <Border Grid.Column="2"
+                                                    VerticalAlignment="Center"
+                                                    Padding="6,2" CornerRadius="5"
+                                                    Background="{Binding Converter={x:Static local:ManagerStateConverter.Instance}, ConverterParameter=Background}">
+                                                <TextBlock FontSize="10"
+                                                           Foreground="{Binding Converter={x:Static local:ManagerStateConverter.Instance}}"
+                                                           Text="{Binding Converter={x:Static local:ManagerStateConverter.Instance}}" />
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </sukiui:GlassCard>
+        </Grid>
+
+        <!-- ============================================================
+             Row 3: 底部提示（可选：快速跳转 / 连接入口等）
+             ============================================================ -->
+        <Grid Grid.Row="3">
+            <Border CornerRadius="10"
+                    Padding="14,10"
+                    BorderBrush="{DynamicResource SukiBorderBrush}"
+                    BorderThickness="1"
+                    Background="Transparent">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <avaloniaIcon:MaterialIcon Grid.Column="0"
+                                               Kind="InformationOutline"
+                                               Width="18" Height="18" Opacity="0.6"
+                                               VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1"
+                                Margin="10,0,0,0"
+                                Spacing="1"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="节点与管理器数据会随后端事件实时刷新。"
+                                   FontSize="12" Opacity="0.75" />
+                        <TextBlock Text="若数据未显示，请点击右上角「刷新数据」或前往连接页确认后端状态。"
+                                   FontSize="11" Opacity="0.55" />
+                    </StackPanel>
+                    <Button Grid.Column="2"
+                            Command="{Binding ViewModel.RefreshDashboardCommand}"
+                            Classes="Flat"
+                            Padding="12,4"
+                            HorizontalAlignment="Right"
+                            IsEnabled="{Binding ViewModel.IsRefreshing, Converter={x:Static local:InvertBoolConverter.Instance}}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <avaloniaIcon:MaterialIcon Kind="Refresh" Width="14" Height="14"
+                                                       Opacity="{Binding ViewModel.IsRefreshing, Converter={x:Static local:BoolOpacityConverter.Instance}, ConverterParameter=0.35}" />
+                            <TextBlock Text="{Binding ViewModel.IsRefreshing, Converter={x:Static local:BoolToTextConverter.Instance}, ConverterParameter='立即刷新|刷新中...'}" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,36 @@
+<ResourceDictionary x:Class="Yuzu_Frontend.Desktop.Controls.YuzuPropertyGridTemplateSelector"
+                    xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:pg="clr-namespace:Yuzu_Frontend.Models.PropertyGrid;assembly=Yuzu_Frontend"
+                    xmlns:controls="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+                    xmlns:avaloniaIcon="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
+
+    <DataTemplate x:Key="FilePathViewModel" DataType="pg:FilePathViewModel">
+        <Grid Classes="Row">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="PropertyGridDisplyColumn" />
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Classes="Label" />
+            <TextBox Grid.Column="2"
+                     HorizontalAlignment="Right" MinWidth="120"
+                     VerticalAlignment="Center"
+                     HorizontalContentAlignment="Right"
+                     IsReadOnly="{Binding IsReadOnly}"
+                     Text="{Binding Value}" />
+            <Button Grid.Column="4"
+                    VerticalAlignment="Center"
+                    Height="36" MinWidth="36" Padding="8,0"
+                    Click="OnBrowseClick"
+                    Classes="Flat Rounded"
+                    Background="{DynamicResource PrimaryBrush}"
+                    Foreground="White">
+                <avaloniaIcon:MaterialIcon Kind="FolderOpen" Width="16" Height="16" />
+            </Button>
+        </Grid>
+    </DataTemplate>
+</ResourceDictionary>

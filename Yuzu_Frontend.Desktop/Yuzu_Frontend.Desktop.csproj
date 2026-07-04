@@ -1,0 +1,113 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!--If you are willing to use platform-specific APIs, use conditional compilation.
+    See https://docs.avaloniaui.net/docs/guides/platforms/platform-specific-code/dotnet for more details.-->
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <BaseOutputPath>.\..\生成\Yuzu_Frontend.Desktop</BaseOutputPath>
+    <Version>1.0.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    <!-- ===== Native AOT 编译配置 ===== -->
+    <!-- 推荐通过自定义开关发布：dotnet publish -c Release -r win-x64 -p:AotMode=true -->
+    <!-- 不直接使用 -p:PublishAot=true：该全局属性会透传到图中的源生成器(netstandard2.0)等项目并导致 NETSDK1207 -->
+    <PublishAot Condition="'$(PublishAot)' == '' AND '$(AotMode)' == 'true'">true</PublishAot>
+    <PublishAot Condition="'$(PublishAot)' == ''">false</PublishAot>
+    <!-- AOT 发布时默认目标 Windows x64；可通过命令行 -r win-x64 / -r linux-x64 / -r osx-x64 覆盖 -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' AND '$(PublishAot)' == 'true'">win-x64</RuntimeIdentifier>
+    <!-- IsAotCompatible 标记项目与 AOT 兼容，启用 Roslyn 分析器警告（AOT 兼容性提示） -->
+    <IsAotCompatible Condition="'$(PublishAot)' == 'true'">true</IsAotCompatible>
+    <!-- EnableTrimAnalyzer 启用 IL Trimmer / AOT 兼容性静态分析（在 Build 阶段也会提示警告） -->
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <!-- 修剪模式：Link 会激进移除未使用代码，建议先 partial 降低运行时风险；若所有反射都消除了可切到 full -->
+    <IlcTrimMode Condition="'$(PublishAot)' == 'true'">partial</IlcTrimMode>
+    <!-- TrimMode=link 与 IsAotCompatible 配对，让 Roslyn 正确输出 AOT 兼容性诊断 -->
+    <TrimMode Condition="'$(PublishAot)' == 'true'">partial</TrimMode>
+    <!-- AOT 编译器优化：Release 下开启；禁止生成堆栈追踪以减小体积（可按需设为 true） -->
+    <IlcOptimizationPreference Condition="'$(Configuration)' == 'Release' AND '$(PublishAot)' == 'true'">Speed</IlcOptimizationPreference>
+    <IlcGenerateStackTraceData Condition="'$(PublishAot)' == 'true'">false</IlcGenerateStackTraceData>
+    <!-- 单文件发布 + 自包含（AOT 必须 SelfContained=true） -->
+    <SelfContained Condition="'$(PublishAot)' == 'true'">true</SelfContained>
+    <PublishSingleFile Condition="'$(PublishAot)' == 'true'">true</PublishSingleFile>
+    <!-- 启用 ReadyToRun 以加速非 AOT 的普通 Release 启动（与 AOT 发布互不影响） -->
+    <PublishReadyToRun Condition="'$(PublishAot)' != 'true' AND '$(Configuration)' == 'Release'">false</PublishReadyToRun>
+    <!-- Debugger 支持：仅在 Debug 配置开启（AOT 发布时始终关闭） -->
+    <DebuggerSupport Condition="'$(PublishAot)' == 'true'">false</DebuggerSupport>
+    <!-- 异常支持：保留完整异常消息（对调试有帮助，略微增加体积） -->
+    <ExceptionSupport>true</ExceptionSupport>
+    <!-- 全局化支持：保留完整时区/文化数据；若体积敏感可设为 invariant -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <!-- AOT 构建时定义 NATIVEAOT 条件编译符号，用于在源码中 #if NATIVEAOT 禁用反射回退 -->
+    <DefineConstants Condition="'$(PublishAot)' == 'true'">$(DefineConstants);NATIVEAOT</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\Yuzu.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaXaml Remove="ViewModel\**" />
+    <Compile Remove="ViewModel\**" />
+    <EmbeddedResource Remove="ViewModel\**" />
+    <None Remove="ViewModel\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\Yuzu.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" />
+    <PackageReference Include="PMCSsE_Communicator" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Include="ReactiveUI.Avalonia" />
+    <!-- ReactiveUI.Fody：提供 [Reactive] 特性，编译期 IL 织入自动生成 RaisePropertyChanged，对 AOT 无运行时影响 -->
+    <PackageReference Include="ReactiveUI.Fody" PrivateAssets="all" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" />
+    <PackageReference Include="protobuf-net" />
+    <!-- CodeWF 日志核心库：提供 UserLogEntry 数据模型 + Logger 静态日志能力（AOT 安全，无反射） -->
+    <PackageReference Include="CodeWF.Log.Core" />
+    <!-- CodeWF 日志查看控件：LogView 内置级别颜色、虚拟化滚动、自动刷新，从 Logger.UserLogs 全局 feed 读取 -->
+    <PackageReference Include="CodeWF.LogViewer.Avalonia" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\Yuzu.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Yuzu_Frontend\Yuzu_Frontend.csproj" />
+    <!-- Source Generator：编译期扫描 [Page] / [Category] / ViewModel-View 映射，生成静态注册表（AOT 安全） -->
+    <ProjectReference
+      Include="..\Yuzu_Frontend.SourceGenerators\Yuzu_Frontend.SourceGenerators.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+      SetTargetFramework="TargetFramework=netstandard2.0" />
+  </ItemGroup>
+
+  <!-- 开发调试：生成的 .g.cs 文件输出到 obj 目录，便于查看 -->
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\Generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Update="StartPage.axaml.cs">
+      <DependentUpon>StartPage.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="YuzuView.axaml.cs">
+      <DependentUpon>YuzuView.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>

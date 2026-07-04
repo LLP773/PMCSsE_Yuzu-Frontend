@@ -1,0 +1,222 @@
+﻿D:\repos\Yuzu-Frontend\_probe_codewf_api\Program.cs(57,67): warning CS8604: “string GetFriendlyName(Type t)”中的形参“t”可能传入 null 引用实参。 [D:\repos\Yuzu-Frontend\_probe_codewf_api\_probe_codewf_api.csproj]
+D:\repos\Yuzu-Frontend\_probe_codewf_api\Program.cs(91,43): warning CS8604: “string GetFriendlyName(Type t)”中的形参“t”可能传入 null 引用实参。 [D:\repos\Yuzu-Frontend\_probe_codewf_api\_probe_codewf_api.csproj]
+
+
+
+====================================================================================================
+  ASSEMBLY: CodeWF.Log.Core  (12.1.0.16)
+====================================================================================================
+
+Public types count: 7
+
+--- class CodeWF.Log.Core.FileLogOptions  ---
+    .ctor()
+    public string DirectoryPath { get; set; }
+    public long MaxFileSizeBytes { get; set; }
+    public int BatchSize { get; set; }
+    public TimeSpan FlushInterval { get; set; }
+    public string TimestampFormat { get; set; }
+    public string ToString()
+    public int GetHashCode()
+    public bool Equals(object obj)
+    public bool Equals(CodeWF.Log.Core.FileLogOptions other)
+    public CodeWF.Log.Core.FileLogOptions <Clone>$()
+
+--- class CodeWF.Log.Core.Logger  ---
+    public CodeWF.Log.Core.LogType MinimumLevel { get; set; }
+    public string LogDirectory { get; }
+    public CodeWF.Log.Core.UserLogFeed UserLogs { get; }
+    public static void Initialize(CodeWF.Log.Core.LoggerOptions options)
+    public static void Log(CodeWF.Log.Core.LogType level, string message, string userMessage = null)
+    public static void Debug(string message, string userMessage = null)
+    public static void Info(string message, string userMessage = null)
+    public static void Warn(string message)
+    public static void Warn(string message, string userMessage)
+    public static void Warn(string message, Exception exception, string userMessage = null)
+    public static void Error(string message, Exception exception = null, string userMessage = null)
+    public static void Fatal(string message, Exception exception = null, string userMessage = null)
+    public static void DebugToFile(string message)
+    public static void InfoToFile(string message)
+    public static void WarnToFile(string message, Exception exception = null)
+    public static void ErrorToFile(string message, Exception exception = null)
+    public static void FatalToFile(string message, Exception exception = null)
+    public static Task FlushAsync()
+    public static Task ShutdownAsync()
+
+--- class CodeWF.Log.Core.LoggerOptions  ---
+    .ctor()
+    public CodeWF.Log.Core.LogType MinimumLevel { get; set; }
+    public CodeWF.Log.Core.FileLogOptions File { get; set; }
+    public bool EnableConsole { get; set; }
+    public int QueueCapacity { get; set; }
+    public int RecentUserLogCapacity { get; set; }
+    public string ToString()
+    public int GetHashCode()
+    public bool Equals(object obj)
+    public bool Equals(CodeWF.Log.Core.LoggerOptions other)
+    public CodeWF.Log.Core.LoggerOptions <Clone>$()
+
+--- enum CodeWF.Log.Core.LogType : System.Enum ---
+    Debug = 0
+    Info = 1
+    Warn = 2
+    Error = 3
+    Fatal = 4
+--- class CodeWF.Log.Core.UserLogEntry  ---
+    .ctor(long Sequence, DateTimeOffset Timestamp, CodeWF.Log.Core.LogType Level, string Message)
+    public long Sequence { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
+    public CodeWF.Log.Core.LogType Level { get; set; }
+    public string Message { get; set; }
+    public string ToString()
+    public int GetHashCode()
+    public bool Equals(object obj)
+    public bool Equals(CodeWF.Log.Core.UserLogEntry other)
+    public CodeWF.Log.Core.UserLogEntry <Clone>$()
+    public void Deconstruct(Int64& Sequence, DateTimeOffset& Timestamp, CodeWF.Log.Core.LogType& Level, String& Message)
+
+--- class CodeWF.Log.Core.UserLogFeed  ---
+    public IReadOnlyList<CodeWF.Log.Core.UserLogEntry> GetRecentEntries()
+    public IDisposable Subscribe(Action<CodeWF.Log.Core.UserLogEntry> handler, bool replayRecent = True)
+
+--- class CodeWF.Log.Core.Extensions.EnumExtensions  ---
+    public static string Description(Enum value)
+
+
+
+
+====================================================================================================
+  ASSEMBLY: CodeWF.LogViewer.Avalonia  (12.1.0.16)
+====================================================================================================
+
+Public types count: 14
+
+--- enum CodeWF.LogViewer.Avalonia.DesktopNotificationAttentionMode : System.Enum ---
+    None = 0
+    Pulse = 1
+    ShakeAndPulse = 2
+--- class CodeWF.LogViewer.Avalonia.LogNotificationContent  ---
+    public string ApplicationName { get; }
+    public CodeWF.Log.Core.LogType Level { get; }
+    public DateTime RecordTime { get; }
+    public string Content { get; }
+
+--- enum CodeWF.LogViewer.Avalonia.LogNotificationMode : System.Enum ---
+    None = 0
+    InApp = 1
+    DesktopWindow = 2
+--- class CodeWF.LogViewer.Avalonia.LogNotificationResourceKeys  ---
+    public static string WindowWidth = CodeWFLogDesktopNotificationWindowWidth
+    public static string WindowMinHeight = CodeWFLogDesktopNotificationWindowMinHeight
+    public static string WindowMaxHeight = CodeWFLogDesktopNotificationWindowMaxHeight
+    public static string WindowBackground = CodeWFLogDesktopNotificationWindowBackground
+    public static string WindowMargin = CodeWFLogDesktopNotificationWindowMargin
+    public static string WindowBorderBrush = CodeWFLogDesktopNotificationWindowBorderBrush
+    public static string WindowBorderThickness = CodeWFLogDesktopNotificationWindowBorderThickness
+    public static string WindowCornerRadius = CodeWFLogDesktopNotificationWindowCornerRadius
+    public static string WindowBoxShadow = CodeWFLogDesktopNotificationWindowBoxShadow
+    public static string TitleBarBackground = CodeWFLogDesktopNotificationTitleBarBackground
+    public static string TitleBarBorderBrush = CodeWFLogDesktopNotificationTitleBarBorderBrush
+    public static string TitleBarBorderThickness = CodeWFLogDesktopNotificationTitleBarBorderThickness
+    public static string TitleBarCornerRadius = CodeWFLogDesktopNotificationTitleBarCornerRadius
+    public static string TitleForeground = CodeWFLogDesktopNotificationTitleForeground
+    public static string ContentForeground = CodeWFLogDesktopNotificationContentForeground
+    public static string ContentMaxHeight = CodeWFLogDesktopNotificationContentMaxHeight
+    public static string MutedForeground = CodeWFLogDesktopNotificationMutedForeground
+    public static string NavigationBackground = CodeWFLogDesktopNotificationNavigationBackground
+    public static string NavigationPointerOverBackground = CodeWFLogDesktopNotificationNavigationPointerOverBackground
+    public static string NavigationBorderBrush = CodeWFLogDesktopNotificationNavigationBorderBrush
+    public static string NavigationForeground = CodeWFLogDesktopNotificationNavigationForeground
+    public static string ConfirmBackground = CodeWFLogDesktopNotificationConfirmBackground
+    public static string ConfirmPointerOverBackground = CodeWFLogDesktopNotificationConfirmPointerOverBackground
+    public static string ConfirmPressedBackground = CodeWFLogDesktopNotificationConfirmPressedBackground
+    public static string ConfirmForeground = CodeWFLogDesktopNotificationConfirmForeground
+    public static string ClosePointerOverBackground = CodeWFLogDesktopNotificationClosePointerOverBackground
+    public static string ClosePointerOverForeground = CodeWFLogDesktopNotificationClosePointerOverForeground
+    public static string DebugBackground = CodeWFLogDesktopNotificationDebugBackground
+    public static string DebugForeground = CodeWFLogDesktopNotificationDebugForeground
+    public static string DebugIconData = CodeWFLogDesktopNotificationDebugIconData
+    public static string InfoBackground = CodeWFLogDesktopNotificationInfoBackground
+    public static string InfoForeground = CodeWFLogDesktopNotificationInfoForeground
+    public static string InfoIconData = CodeWFLogDesktopNotificationInfoIconData
+    public static string WarnBackground = CodeWFLogDesktopNotificationWarnBackground
+    public static string WarnForeground = CodeWFLogDesktopNotificationWarnForeground
+    public static string WarnIconData = CodeWFLogDesktopNotificationWarnIconData
+    public static string ErrorBackground = CodeWFLogDesktopNotificationErrorBackground
+    public static string ErrorForeground = CodeWFLogDesktopNotificationErrorForeground
+    public static string ErrorIconData = CodeWFLogDesktopNotificationErrorIconData
+    public static string FatalBackground = CodeWFLogDesktopNotificationFatalBackground
+    public static string FatalForeground = CodeWFLogDesktopNotificationFatalForeground
+    public static string FatalIconData = CodeWFLogDesktopNotificationFatalIconData
+
+--- class CodeWF.LogViewer.Avalonia.LogNotifications  ---
+    public static CodeWF.LogViewer.Avalonia.LogNotificationMode GetMode(Avalonia.Application target)
+    public static void SetMode(Avalonia.Application target, CodeWF.LogViewer.Avalonia.LogNotificationMode value)
+    public static CodeWF.Log.Core.LogType GetMinimumLevel(Avalonia.Application target)
+    public static void SetMinimumLevel(Avalonia.Application target, CodeWF.Log.Core.LogType value)
+    public static CodeWF.Log.Core.LogType GetMaximumLevel(Avalonia.Application target)
+    public static void SetMaximumLevel(Avalonia.Application target, CodeWF.Log.Core.LogType value)
+    public static TimeSpan GetDuration(Avalonia.Application target)
+    public static void SetDuration(Avalonia.Application target, TimeSpan value)
+    public static string GetApplicationName(Avalonia.Application target)
+    public static void SetApplicationName(Avalonia.Application target, string value)
+    public static Avalonia.Controls.Templates.IDataTemplate GetDesktopContentTemplate(Avalonia.Application target)
+    public static void SetDesktopContentTemplate(Avalonia.Application target, Avalonia.Controls.Templates.IDataTemplate value)
+    public static CodeWF.LogViewer.Avalonia.DesktopNotificationAttentionMode GetAttentionMode(Avalonia.Application target)
+    public static void SetAttentionMode(Avalonia.Application target, CodeWF.LogViewer.Avalonia.DesktopNotificationAttentionMode value)
+    public static Avalonia.AttachedProperty<CodeWF.LogViewer.Avalonia.LogNotificationMode> ModeProperty = {readonly}
+    public static Avalonia.AttachedProperty<CodeWF.Log.Core.LogType> MinimumLevelProperty = {readonly}
+    public static Avalonia.AttachedProperty<CodeWF.Log.Core.LogType> MaximumLevelProperty = {readonly}
+    public static Avalonia.AttachedProperty<TimeSpan> DurationProperty = {readonly}
+    public static Avalonia.AttachedProperty<string> ApplicationNameProperty = {readonly}
+    public static Avalonia.AttachedProperty<Avalonia.Controls.Templates.IDataTemplate> DesktopContentTemplateProperty = {readonly}
+    public static Avalonia.AttachedProperty<CodeWF.LogViewer.Avalonia.DesktopNotificationAttentionMode> AttentionModeProperty = {readonly}
+
+--- class CodeWF.LogViewer.Avalonia.LogView : Avalonia.Controls.UserControl ---
+    .ctor()
+    public double LogLineHeightMultiplier { get; set; }
+    public CodeWF.Log.Core.LogType MinimumLevel { get; set; }
+    public CodeWF.Log.Core.LogType MaximumLevel { get; set; }
+    public int MaxDisplayCount { get; set; }
+    public TimeSpan RefreshInterval { get; set; }
+    public string TimestampFormat { get; set; }
+    public void InitializeComponent(bool loadXaml = True)
+    public static Avalonia.StyledProperty<double> LogLineHeightMultiplierProperty = {readonly}
+    public static Avalonia.StyledProperty<CodeWF.Log.Core.LogType> MinimumLevelProperty = {readonly}
+    public static Avalonia.StyledProperty<CodeWF.Log.Core.LogType> MaximumLevelProperty = {readonly}
+    public static Avalonia.StyledProperty<int> MaxDisplayCountProperty = {readonly}
+    public static Avalonia.StyledProperty<TimeSpan> RefreshIntervalProperty = {readonly}
+    public static Avalonia.StyledProperty<string> TimestampFormatProperty = {readonly}
+
+--- class CodeWF.LogViewer.Avalonia.Extensions.ScrollViewExtensions  ---
+    public static bool IsAtVerticalBottom(Avalonia.Controls.ScrollViewer scrollView, double tolerance = 1)
+
+--- class CodeWF.LogViewer.Avalonia.Extensions.VisualTreeExtensions  ---
+    public static T FindVisualDescendant(Avalonia.Visual visual)
+
+--- class CodeWF.LogViewer.Avalonia.Notifications.Behaviors.NotificationAttentionBehavior : Avalonia.Xaml.Interactivity.Behavior`1[[Avalonia.Controls.Border, Avalonia.Controls, Version=12.1.1.0, Culture=neutral, PublicKeyToken=c8d484a7012f9a8b]] ---
+    .ctor()
+    public Avalonia.Controls.Control PulseTarget { get; set; }
+    public static Avalonia.StyledProperty<Avalonia.Controls.Control> PulseTargetProperty = {readonly}
+
+--- class CodeWF.LogViewer.Avalonia.Notifications.Behaviors.NotificationLevelVisualBehavior : Avalonia.Xaml.Interactivity.Behavior`1[[Avalonia.Controls.Border, Avalonia.Controls, Version=12.1.1.0, Culture=neutral, PublicKeyToken=c8d484a7012f9a8b]] ---
+    .ctor()
+    public Avalonia.Controls.PathIcon IconTarget { get; set; }
+    public Avalonia.Controls.TextBlock TextTarget { get; set; }
+    public static Avalonia.StyledProperty<Avalonia.Controls.PathIcon> IconTargetProperty = {readonly}
+    public static Avalonia.StyledProperty<Avalonia.Controls.TextBlock> TextTargetProperty = {readonly}
+
+--- class CodeWF.LogViewer.Avalonia.Notifications.Behaviors.NotificationWindowInteractionBehavior : Avalonia.Xaml.Interactivity.Behavior`1[[Avalonia.Controls.Window, Avalonia.Controls, Version=12.1.1.0, Culture=neutral, PublicKeyToken=c8d484a7012f9a8b]] ---
+    .ctor()
+
+--- class CodeWF.LogViewer.Avalonia.Notifications.Behaviors.NotificationWindowPlacementBehavior : Avalonia.Xaml.Interactivity.Behavior`1[[Avalonia.Controls.Window, Avalonia.Controls, Version=12.1.1.0, Culture=neutral, PublicKeyToken=c8d484a7012f9a8b]] ---
+    .ctor()
+
+--- class CompiledAvaloniaXaml.!AvaloniaResources  ---
+    public static void Populate:/Notifications/Styles/NotificationResources.axaml(IServiceProvider , Avalonia.Controls.ResourceDictionary )
+    public static Avalonia.Controls.ResourceDictionary Build:/Notifications/Styles/NotificationResources.axaml(IServiceProvider )
+
+--- class CompiledAvaloniaXaml.!XamlLoader  ---
+    public static object TryLoad(IServiceProvider , string )
+    public static object TryLoad(string )
+
