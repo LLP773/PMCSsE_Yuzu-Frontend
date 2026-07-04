@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <AvaloniaXaml Remove="Controls\**" />
+    <AvaloniaXaml Remove="Styles\**" />
+    <Compile Remove="Controls\**" />
+    <Compile Remove="Styles\**" />
+    <EmbeddedResource Remove="Controls\**" />
+    <EmbeddedResource Remove="Styles\**" />
+    <None Remove="Controls\**" />
+    <None Remove="Styles\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Include="Material.Icons.Avalonia" />
+    <PackageReference Include="PMCSsE_Communicator" />
+    <PackageReference Include="ReactiveUI.Avalonia" />
+    <PackageReference Include="SukiUI" />
+    <PackageReference Include="SukiUI.Dock" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" />
+    <PackageReference Include="protobuf-net" />
+  </ItemGroup>
+</Project>

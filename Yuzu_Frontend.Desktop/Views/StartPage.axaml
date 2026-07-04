@@ -1,0 +1,255 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:avaloniaIcon="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sukiui="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+             xmlns:vm="clr-namespace:Yuzu_Frontend.Models;assembly=Yuzu_Frontend"
+             xmlns:local="clr-namespace:Yuzu_Frontend.Desktop.Views;assembly=Yuzu_Frontend.Desktop"
+             x:Class="Yuzu_Frontend.Desktop.Views.StartPage"
+             x:DataType="local:StartPage">
+
+    <Grid Margin="24,20,24,24" ColumnDefinitions="*,380,300" ColumnSpacing="20">
+
+        <!-- 左：连接状态 + 日志 -->
+        <sukiui:GlassCard Grid.Column="0" Padding="16" IsAnimated="True">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="14">
+
+                <!-- 标题栏 -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Text="连接与日志" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock Text="实时查看与 PMCSsE 后端的通信日志" Opacity="0.6" FontSize="12" />
+                    </StackPanel>
+                    <Grid Grid.Column="1" ColumnDefinitions="Auto,Auto" ColumnSpacing="10">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <avaloniaIcon:MaterialIcon Kind="CircleMedium" Width="12" Height="12"
+                                                   Foreground="{DynamicResource ThemeAccentBrush}" />
+                            <TextBlock Text="{Binding Connection.ConnectionStatus, Mode=OneWay, FallbackValue=未连接}"
+                                       FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+
+                <Separator Grid.Row="1" />
+
+                <!-- 已连接后端信息摘要（表格形式） -->
+                <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" Margin="0,2,0,0">
+                    <!-- 表格表头（可见性由 code-behind 同步） -->
+                    <Border Grid.Row="0" x:Name="BackendsTableHeader" Background="{DynamicResource ThemeCardLayerBackground}"
+                            CornerRadius="8,8,0,0" Padding="12" IsVisible="False">
+                        <Grid ColumnDefinitions="Auto,*,*,*" ColumnSpacing="12">
+                            <CheckBox Grid.Column="0"
+                                      IsChecked="{Binding Connection.SelectAllChecked, Mode=TwoWay}"
+                                      VerticalAlignment="Center" ToolTip.Tip="全选/取消全选" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                <avaloniaIcon:MaterialIcon Kind="Web" Width="14" Height="14" Opacity="0.7" VerticalAlignment="Center" />
+                                <TextBlock Text="服务器地址" FontSize="11" Opacity="0.6" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
+                                <avaloniaIcon:MaterialIcon Kind="Numeric" Width="14" Height="14" Opacity="0.7" VerticalAlignment="Center" />
+                                <TextBlock Text="端口" FontSize="11" Opacity="0.6" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
+                                <avaloniaIcon:MaterialIcon Kind="Identifier" Width="14" Height="14" Opacity="0.7" VerticalAlignment="Center" />
+                                <TextBlock Text="后端 ID" FontSize="11" Opacity="0.6" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- 表格内容容器：ScrollViewer 包含 ItemsControl，ItemsPanel 为 StackPanel（可见性由 code-behind 同步） -->
+                    <ScrollViewer Grid.Row="1" x:Name="BackendsTableScrollViewer" VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled" MaxHeight="180" IsVisible="False">
+                        <ItemsControl ItemsSource="{Binding Connection.ConnectedBackends}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Vertical" Spacing="2" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ConnectionBackendEntry">
+                                    <Border Background="{DynamicResource ThemeCardLayerBackground}"
+                                            CornerRadius="4" Padding="12,8" Margin="0,2,0,0">
+                                        <Grid ColumnDefinitions="Auto,*,*,*" ColumnSpacing="12">
+                                            <CheckBox Grid.Column="0"
+                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                      VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding BackendAddress, FallbackValue=—}"
+                                                       FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding BackendPort, FallbackValue=—}"
+                                                       FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="3" Text="{Binding BackendId, FallbackValue=—}"
+                                                       FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                                       VerticalAlignment="Center" FontFamily="Consolas" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- 断联按钮：仅当有选中条目时启用（可见性由 code-behind 同步，依赖 HasConnectedBackends） -->
+                    <Button Grid.Row="2" x:Name="ButtonDisconnectSelected"
+                            Content="断开连接"
+                            Click="ButtonDisconnectSelected_Click"
+                            HorizontalAlignment="Stretch"
+                            IsEnabled="{Binding Connection.HasSelectedBackends, FallbackValue=False}"
+                            Classes="Flat Rounded"
+                            Height="34"
+                            FontSize="13"
+                            Margin="0,8,0,0"
+                            IsVisible="False" />
+
+                    <!-- 空状态提示：当没有已连接后端时显示（可见性由 code-behind 同步） -->
+                    <Border Grid.Row="3" x:Name="EmptyBackendsHint" Background="{DynamicResource ThemeCardLayerBackground}"
+                            CornerRadius="8" Padding="16" IsVisible="True">
+                        <StackPanel Spacing="4" HorizontalAlignment="Center">
+                            <avaloniaIcon:MaterialIcon Kind="ServerNetwork" Width="28" Height="28" Opacity="0.4"
+                                                        HorizontalAlignment="Center" />
+                            <TextBlock Text="暂无已连接后端信息" FontSize="13" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" Opacity="0.7" />
+                            <TextBlock Text="请在右侧输入服务器地址与端口，然后点击连接" FontSize="11"
+                                       HorizontalAlignment="Center" Opacity="0.5" TextWrapping="Wrap" TextAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- 日志区标题 -->
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" Margin="0,12,0,0">
+                    <avaloniaIcon:MaterialIcon Kind="FormatListText" Width="14" Height="14" Opacity="0.7" VerticalAlignment="Center" />
+                    <TextBlock Text="通信日志" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Connection.LogEntries.Count, StringFormat='({0} 条)', FallbackValue=(0 条)}" FontSize="11" Opacity="0.5" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- 日志列表：使用 LogEntry.TimeText / LogEntry.Content 分列显示 -->
+                <ScrollViewer Grid.Row="4" Margin="0,8,0,0" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Connection.LogEntries}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:LogEntry">
+                                <Border Background="{DynamicResource ThemeCardLayerBackground}"
+                                        CornerRadius="6" Padding="10,8" Margin="0,0,0,6">
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <TextBlock Grid.Column="0" Text="{Binding TimeText}" FontSize="11" Opacity="0.5" FontFamily="Consolas" VerticalAlignment="Top" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Content}" FontSize="12" TextWrapping="Wrap" FontFamily="Consolas" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </sukiui:GlassCard>
+
+        <!-- 中：连接表单 -->
+        <sukiui:GlassCard Grid.Column="1" Padding="20" IsAnimated="True">
+            <sukiui:BusyArea IsBusy="{Binding Connection.IsConnecting, FallbackValue=False}">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" RowSpacing="12">
+
+                    <!-- 图标 + 标题 -->
+                    <Grid Grid.Row="0" RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                        <Border Grid.Row="0" Width="64" Height="64" CornerRadius="16" HorizontalAlignment="Center"
+                                Background="{DynamicResource ThemeAccentBrush}" Opacity="0.9">
+                            <avaloniaIcon:MaterialIcon Kind="RouterNetwork" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" />
+                        </Border>
+                        <TextBlock Grid.Row="1" Text="连接到 PMCSsE 后端" HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" />
+                        <TextBlock Grid.Row="2" Text="通过加密通道管理远程 Minecraft 服务器" Opacity="0.6" FontSize="12" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" />
+                    </Grid>
+
+                    <!-- 地址 -->
+                    <StackPanel Grid.Row="1" Spacing="6">
+                        <TextBlock Text="后端地址" FontWeight="SemiBold" FontSize="12" />
+                        <TextBox x:Name="AddressBox" Text="{Binding Connection.BackendAddress, Mode=TwoWay,}" PlaceholderText="例如 127.0.0.1 或 myserver.com" />
+                    </StackPanel>
+
+                    <!-- 端口 -->
+                    <StackPanel Grid.Row="2" Spacing="6">
+                        <TextBlock Text="端口号" FontWeight="SemiBold" FontSize="12" />
+                        <TextBox x:Name="PortBox" Text="{Binding Connection.BackendPort, Mode=TwoWay,}" PlaceholderText="默认 20000" />
+                    </StackPanel>
+
+                    <!-- 密钥 -->
+                    <StackPanel Grid.Row="3" Spacing="6">
+                        <TextBlock Text="访问密钥" FontWeight="SemiBold" FontSize="12" />
+                        <TextBox x:Name="PasswordBox" Text="{Binding Connection.BackendPassword, Mode=TwoWay}" PlaceholderText="于后端控制台获取" PasswordChar="●" />
+                    </StackPanel>
+
+                    <!-- 勾选框区域 -->
+                    <StackPanel Grid.Row="4" Spacing="6" Margin="0,4,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <CheckBox x:Name="ChkSavePassword"
+                                      Content="保存密码"
+                                      IsChecked="{Binding Connection.SavePassword, Mode=TwoWay}"
+                                      FontSize="12"
+                                      Margin="10,0,0,0" />
+                            <CheckBox x:Name="ChkSaveHistory"
+                                      Content="保存到历史记录"
+                                      IsChecked="{Binding Connection.SaveToHistory, Mode=TwoWay}"
+                                      FontSize="12"
+                                      Margin="100,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- 主按钮（仅用于发起连接，断联功能已移至左侧表格区 -->
+                    <Button Grid.Row="5" x:Name="ButtonConnect"
+                            Content="连接"
+                            Click="ButtonConnect_Click"
+                            IsEnabled="{Binding Connection.IsConnecting, Converter={StaticResource BoolInverseConverter}, FallbackValue=True}"
+                            HorizontalAlignment="Stretch"
+                            Classes="Flat Rounded"
+                            Height="40"
+                            FontSize="14" />
+
+                    <!-- 提示 -->
+                    <Border Grid.Row="6" Background="{DynamicResource ThemeCardLayerBackground}" CornerRadius="8" Padding="12">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                            <avaloniaIcon:MaterialIcon Grid.Column="0" Kind="ShieldCheck" Width="16" Height="16" VerticalAlignment="Top" Opacity="0.7" />
+                            <TextBlock Grid.Column="1" Text="首次连接会弹出指纹确认对话框。请确保服务器显示的指纹与您预期一致，以防止中间人攻击。"
+                                       FontSize="11" Opacity="0.65" TextWrapping="Wrap" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </sukiui:BusyArea>
+        </sukiui:GlassCard>
+
+        <!-- 右：历史记录 -->
+        <sukiui:GlassCard Grid.Column="2" Padding="16" IsAnimated="True">
+            <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="连接历史" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Text="快速切换最近使用的服务器" FontSize="11" Opacity="0.6" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="清空" Classes="Flat Rounded" Click="ClearHistory_Click" />
+                </Grid>
+
+                <Separator Grid.Row="1" />
+
+                <ScrollViewer Grid.Row="2">
+                    <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="local:ConnectionHistoryItem">
+                                <sukiui:GlassCard Margin="0,0,0,8" Padding="12" IsAnimated="True" IsInteractive="True"
+                                                  PointerPressed="HistoryItem_PointerPressed">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <StackPanel Grid.Column="0" Spacing="4">
+                                            <TextBlock Text="{Binding BackendName}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding BackendId}" FontSize="11" Opacity="0.55" FontFamily="Consolas" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding FriendlyTime}" FontSize="11" Opacity="0.55" />
+                                            <TextBlock Text="{Binding FrequencyLevel}" FontSize="10" Opacity="0.45" />
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="×" FontSize="14" Padding="6,0" Classes="Flat Rounded"
+                                                VerticalAlignment="Center" Click="HistoryDelete_Click" />
+                                    </Grid>
+                                </sukiui:GlassCard>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </sukiui:GlassCard>
+
+    </Grid>
+
+</UserControl>

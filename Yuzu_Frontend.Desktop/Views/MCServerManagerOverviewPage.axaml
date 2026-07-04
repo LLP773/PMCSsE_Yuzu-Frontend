@@ -1,0 +1,401 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Yuzu_Frontend.Desktop.Views;assembly=Yuzu_Frontend.Desktop"
+             xmlns:avaloniaIcon="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:sukiui="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+             xmlns:vm="clr-namespace:Yuzu_Frontend.Models;assembly=Yuzu_Frontend"
+             xmlns:dg="using:Avalonia.Controls"
+             x:Class="Yuzu_Frontend.Desktop.Views.MCServerManagerOverviewPage"
+             x:DataType="local:MCServerManagerOverviewPage">
+
+    <UserControl.Styles>
+        <Style Selector="DataGrid">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="GridLinesVisibility" Value="None" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="RowBackground" Value="Transparent" />
+            <Setter Property="ColumnHeaderHeight" Value="40" />
+            <Setter Property="RowHeight" Value="44" />
+            <!--<Setter Property="MaxColumnWidth" Value="300" />-->
+            <Setter Property="CanUserSortColumns" Value="True" />
+            <Setter Property="CanUserResizeColumns" Value="True" />
+            <Setter Property="CanUserReorderColumns" Value="True" />
+        </Style>
+
+        <Style Selector="DataGridColumnHeader">
+            <Setter Property="Background" Value="{DynamicResource ThemeCardLayerBackground}" />
+            <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundColor}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Opacity" Value="0.65" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <Style Selector="DataGridRow">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Margin" Value="0,0,0,3" />
+        </Style>
+
+        <Style Selector="DataGridRow:pointerover">
+            <Setter Property="Background" Value="{DynamicResource ThemeCardLayerBackground}" />
+        </Style>
+
+        <Style Selector="DataGridRow:selected">
+            <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style Selector="DataGridCell">
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Focusable" Value="False" />
+        </Style>
+
+        <Style Selector="DataGridCell TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <Style Selector="DataGridCell TextBox">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="24,20,24,24">
+        <Grid RowDefinitions="Auto,*,Auto,Auto" RowSpacing="16">
+            <Grid Grid.Row="0" ColumnDefinitions="*,*,*,*" ColumnSpacing="14">
+                <sukiui:GlassCard Grid.Column="0" Padding="16" IsAnimated="True">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Border Grid.Row="0" Grid.Column="0" Width="40" Height="40" CornerRadius="10" Background="#6170ff">
+                            <avaloniaIcon:MaterialIcon Kind="LinkVariant" Width="20" Height="20"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="White" />
+                        </Border>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="后端连接数量" FontSize="11" Opacity="0.55" />
+                            <TextBlock Text="{Binding ViewModel.ConnectedBackendCount, FallbackValue=0}" FontSize="22" FontWeight="Bold" />
+                        </StackPanel>
+                    </Grid>
+                </sukiui:GlassCard>
+
+                <sukiui:GlassCard Grid.Column="1" Padding="16" IsAnimated="True">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Border Grid.Row="0" Grid.Column="0" Width="40" Height="40" CornerRadius="10" Background="#FF7B61FF">
+                            <avaloniaIcon:MaterialIcon Kind="FolderMultipleOutline" Width="20" Height="20"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="White" />
+                        </Border>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="管理器总数" FontSize="11" Opacity="0.55" />
+                            <TextBlock Text="{Binding ViewModel.ManagerCount, FallbackValue=0}" FontSize="22" FontWeight="Bold" />
+                        </StackPanel>
+                    </Grid>
+                </sukiui:GlassCard>
+
+                <sukiui:GlassCard Grid.Column="2" Padding="16" IsAnimated="True">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Border Grid.Row="0" Grid.Column="0" Width="40" Height="40" CornerRadius="10" Background="#ff61a8">
+                            <avaloniaIcon:MaterialIcon Kind="PowerStandby" Width="20" Height="20"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="White" />
+                        </Border>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="正在运行" FontSize="11" Opacity="0.55" />
+                            <TextBlock Text="{Binding ViewModel.Managers, Converter={x:Static local:RunningManagerCountConverter.Instance}, FallbackValue=0}" FontSize="22" FontWeight="Bold" />
+                        </StackPanel>
+                    </Grid>
+                </sukiui:GlassCard>
+
+                <sukiui:GlassCard Grid.Column="3" Padding="16" IsAnimated="True">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Border Grid.Row="0" Grid.Column="0" Width="40" Height="40" CornerRadius="10" Background="#2D9D7B">
+                            <avaloniaIcon:MaterialIcon Kind="Server" Width="20" Height="20"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="White" />
+                        </Border>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="已加载" FontSize="11" Opacity="0.55" />
+                            <TextBlock Text="{Binding ViewModel.Managers, Converter={x:Static local:LoadedManagerCountConverter.Instance}, FallbackValue=0}" FontSize="22" FontWeight="Bold" />
+                        </StackPanel>
+                    </Grid>
+                </sukiui:GlassCard>
+
+            </Grid>
+
+            <sukiui:GlassCard Grid.Row="1" Padding="16" IsAnimated="True">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid ColumnDefinitions="Auto,Auto,*,*,Auto" ColumnSpacing="16">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                            <avaloniaIcon:MaterialIcon Kind="Search" Width="16" Height="16" Opacity="0.6" />
+                            <TextBox x:Name="SearchBox"
+                                     PlaceholderText="搜索管理器名称或类型..."
+                                     Text="{Binding ViewModel.SearchText, Mode=TwoWay}"
+                                     FontSize="13"
+                                     Width="200" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                            <avaloniaIcon:MaterialIcon Kind="Filter" Width="16" Height="16" Opacity="0.6" />
+                            <ComboBox x:Name="StatusFilter"
+                                      ItemsSource="{Binding ViewModel.StatusFilterOptions}"
+                                      SelectedItem="{Binding ViewModel.SelectedStatusFilter, Mode=TwoWay}"
+                                      FontSize="13"
+                                      Width="120" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="排序:" FontSize="13" Opacity="0.6" />
+                            <ComboBox x:Name="SortBy"
+                                      ItemsSource="{Binding ViewModel.SortOptions}"
+                                      SelectedItem="{Binding ViewModel.SelectedSortOption, Mode=TwoWay}"
+                                      FontSize="13"
+                                      Width="150" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="排序方式:" FontSize="13" Opacity="0.6" />
+                            <ComboBox x:Name="SortOrder"
+                                      ItemsSource="{Binding ViewModel.SortOrderOptions}"
+                                      SelectedItem="{Binding ViewModel.SelectedSortOrder, Mode=TwoWay}"
+                                      FontSize="13"
+                                      Width="100" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1" RowDefinitions="*" ColumnDefinitions="*">
+                        <Border x:Name="LoadingOverlay"
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Background="{DynamicResource ThemeCardBackground}"
+                                Opacity="0.8"
+                                IsVisible="{Binding ViewModel.IsLoading}">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                                <avaloniaIcon:MaterialIcon Kind="Refresh" Width="48" Height="48"
+                                                           Foreground="{DynamicResource ThemeAccentBrush}" />
+                                <TextBlock Text="正在加载管理器数据..." FontSize="14" Opacity="0.7" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="EmptyState"
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                IsVisible="{Binding ViewModel.IsEmpty}">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
+                                        Margin="48">
+                                <avaloniaIcon:MaterialIcon Kind="Server" Width="64" Height="64"
+                                                           Opacity="0.3" />
+                                <TextBlock Text="{Binding ViewModel.EmptyMessage}" FontSize="16" Opacity="0.6" />
+                                <Button x:Name="EmptyRefreshButton"
+                                        Click="RefreshButton_Click"
+                                        Classes="Flat Rounded">
+                                    <Button.Content>
+                                        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
+                                            <avaloniaIcon:MaterialIcon Grid.Column="0" Kind="Refresh" Width="14" Height="14" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="重新加载" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Button.Content>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="ErrorState"
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                IsVisible="{Binding ViewModel.HasError}">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12"
+                                        Margin="48">
+                                <avaloniaIcon:MaterialIcon Kind="AlertCircle" Width="64" Height="64"
+                                                           Foreground="#FF6B6B" />
+                                <TextBlock Text="{Binding ViewModel.ErrorMessage}" FontSize="16" Opacity="0.6" />
+                                <Button x:Name="ErrorRefreshButton"
+                                        Click="RefreshButton_Click"
+                                        Classes="Flat Rounded">
+                                    <Button.Content>
+                                        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
+                                            <avaloniaIcon:MaterialIcon Grid.Column="0" Kind="Refresh" Width="14" Height="14" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="重试" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Button.Content>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <dg:DataGrid x:Name="ManagerDataGrid"
+                                     Grid.Row="0"
+                                     Grid.Column="0"
+                                     ItemsSource="{Binding ViewModel.PagedManagers}"
+                                     SelectedItem="{Binding ViewModel.SelectedManager, Mode=TwoWay}"
+                                     SelectionMode="Single"
+                                     IsReadOnly="False"
+                                     IsVisible="True">
+                                     <!--IsVisible="{Binding ViewModel.HasManagers}">-->
+                            <dg:DataGrid.Columns>
+                                <dg:DataGridTemplateColumn Header="状态" Width="110" MinWidth="80">
+                                    <dg:DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate x:DataType="vm:MCServerManagerItemModel">
+                                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                                        VerticalAlignment="Center">
+                                                <Ellipse Width="10" Height="10"
+                                                         Fill="{Binding IsMCServerRunning, Converter={x:Static local:StatusColorConverter.Instance}}" />
+                                                <TextBlock Text="{Binding MCServerStatus}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </dg:DataGridTemplateColumn.CellTemplate>
+                                </dg:DataGridTemplateColumn>
+
+                                <dg:DataGridTextColumn Header="管理器名称"
+                                                       Binding="{Binding MCServerName}"
+                                                       Width="Auto"
+                                                       FontWeight="SemiBold" />
+
+                                <dg:DataGridTextColumn Header="服务端类型"
+                                                       Binding="{Binding MCServerType}"
+                                                       Width="Auto" />
+
+                                <dg:DataGridTextColumn Header="使用率"
+                                                       Binding="{Binding}"
+                                                       Width="Auto"
+                                                       MinWidth="180"
+                                                       FontFamily="Consolas" />
+
+                                <dg:DataGridTextColumn Header="服务器地址"
+                                                       Binding="{Binding}"
+                                                       Width="Auto"
+                                                       MinWidth="150"
+                                                       FontFamily="Consolas" />
+
+                                <dg:DataGridTextColumn/>
+
+                            </dg:DataGrid.Columns>
+                        </dg:DataGrid>
+                    </Grid>
+
+                    <sukiui:GlassCard Grid.Row="2" Padding="12" Margin="8,0">
+                                      <!--IsVisible="{Binding ViewModel.HasManagers}"-->
+                        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="8">
+                            <Button Grid.Column="0"
+                                    Click="FirstPageButton_Click"
+                                    IsEnabled="{Binding ViewModel.Pagination.HasPreviousPage}"
+                                    Classes="Flat Rounded"
+                                    ToolTip.Tip="首页">
+                                <Button.Content>
+                                    <avaloniaIcon:MaterialIcon Kind="SkipBackward" Width="16" Height="16" />
+                                </Button.Content>
+                            </Button>
+
+                            <Button Grid.Column="1"
+                                    Click="PreviousPageButton_Click"
+                                    IsEnabled="{Binding ViewModel.Pagination.HasPreviousPage}"
+                                    Classes="Flat Rounded"
+                                    ToolTip.Tip="上一页">
+                                <Button.Content>
+                                    <avaloniaIcon:MaterialIcon Kind="ChevronLeft" Width="16" Height="16" />
+                                </Button.Content>
+                            </Button>
+
+                            <TextBlock Grid.Column="2"
+                                       Text="{Binding ViewModel.Pagination.PageInfoText}"
+                                       FontSize="13"
+                                       VerticalAlignment="Center"
+                                       Margin="4,0" />
+
+                            <Button Grid.Column="4"
+                                    Click="NextPageButton_Click"
+                                    IsEnabled="{Binding ViewModel.Pagination.HasNextPage}"
+                                    Classes="Flat Rounded"
+                                    ToolTip.Tip="下一页">
+                                <Button.Content>
+                                    <avaloniaIcon:MaterialIcon Kind="ChevronRight" Width="16" Height="16" />
+                                </Button.Content>
+                            </Button>
+
+                            <Button Grid.Column="5"
+                                    Click="LastPageButton_Click"
+                                    IsEnabled="{Binding ViewModel.Pagination.HasNextPage}"
+                                    Classes="Flat Rounded"
+                                    ToolTip.Tip="末页">
+                                <Button.Content>
+                                    <avaloniaIcon:MaterialIcon Kind="SkipForward" Width="16" Height="16" />
+                                </Button.Content>
+                            </Button>
+
+                            <Border Grid.Column="6"
+                                    Width="1"
+                                    Height="24"
+                                    Background="{DynamicResource ThemeDividerColor}" />
+
+                            <StackPanel Grid.Column="3"
+                                        Orientation="Horizontal"
+                                        Spacing="6"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center">
+                                <TextBlock Text="每页:" FontSize="12" Opacity="0.6" />
+                                <ComboBox ItemsSource="{Binding ViewModel.Pagination.PageSizeOptions}"
+                                          SelectedItem="{Binding ViewModel.Pagination.PageSize, Mode=TwoWay}"
+                                          FontSize="12"
+                                          Width="60" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="7"
+                                        Orientation="Horizontal"
+                                        Spacing="6"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="跳转:" FontSize="12" Opacity="0.6" />
+                                <TextBox x:Name="PageNumberTextBox"
+                                         FontSize="12"
+                                         Width="50"
+                                         Text="{Binding ViewModel.Pagination.CurrentPage, Mode=TwoWay}" />
+                                <TextBlock Text="/" FontSize="12" Opacity="0.6" />
+                                <TextBlock Text="{Binding ViewModel.Pagination.TotalPages}" FontSize="12" />
+                            </StackPanel>
+                        </Grid>
+                    </sukiui:GlassCard>
+                </Grid>
+            </sukiui:GlassCard>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button x:Name="LoadButton"
+                        Click="LoadButton_Click"
+                        Classes="Flat Rounded"
+                        IsEnabled="{Binding ViewModel.CanLoadManager}">
+                    <Button.Content>
+                        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
+                            <avaloniaIcon:MaterialIcon Grid.Column="0" Kind="Download" Width="14" Height="14" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="加载选中管理器" VerticalAlignment="Center" />
+                        </Grid>
+                    </Button.Content>
+                </Button>
+                <Button x:Name="StartButton"
+                        Click="StartButton_Click"
+                        Classes="Flat Rounded"
+                        IsEnabled="{Binding ViewModel.CanStartManager}">
+                    <Button.Content>
+                        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
+                            <avaloniaIcon:MaterialIcon Grid.Column="0" Kind="Play" Width="14" Height="14" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="启动服务端" VerticalAlignment="Center" />
+                        </Grid>
+                    </Button.Content>
+                </Button>
+                <Button x:Name="StopButton"
+                        Click="StopButton_Click"
+                        Classes="Flat Rounded"
+                        IsEnabled="{Binding ViewModel.CanStopManager}">
+                    <Button.Content>
+                        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
+                            <avaloniaIcon:MaterialIcon Grid.Column="0" Kind="Stop" Width="14" Height="14" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="停止服务端" VerticalAlignment="Center" />
+                        </Grid>
+                    </Button.Content>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,89 @@
+<sukiui:SukiWindow xmlns="https://github.com/avaloniaui"
+                   xmlns:sukiui="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+                   xmlns:avaloniaIcon="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                   xmlns:local="clr-namespace:Yuzu_Frontend.Desktop;assembly=Yuzu_Frontend.Desktop"
+                   MinWidth="1280"
+                   MinHeight="720"
+                   d:DesignHeight="800"
+                   d:DesignWidth="1440"
+                   x:Class="Yuzu_Frontend.Desktop.YuzuView"
+                   x:DataType="local:YuzuView"
+                   Icon="\Assets\Yuzu.ico"
+                   BackgroundStyle="Bubble"
+                   CanPin="True"
+                   CanFullScreen="True"
+                   Title="Yuzu · PMCSsE 控制台"
+                   ShowTitlebarBackground="False"
+                   ShowBottomBorder="False"
+                   IsTitleBarVisible="True"
+                   IsMenuVisible="True"
+                   mc:Ignorable="d">
+
+    <sukiui:SukiWindow.TitleBarContextMenu>
+        <ContextMenu>
+            <MenuItem Header="关于 Yuzu" />
+            <MenuItem Header="检查更新" />
+            <Separator />
+            <MenuItem Header="退出" />
+        </ContextMenu>
+    </sukiui:SukiWindow.TitleBarContextMenu>
+
+    <sukiui:SukiWindow.LogoContent>
+        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8">
+            <Image Grid.Column="0" Source="\Assets\Yuzu.ico" Width="20" Height="20"/>
+            <TextBlock Grid.Column="1" Text="Yuzu" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="13" />
+        </Grid>
+    </sukiui:SukiWindow.LogoContent>
+
+    <sukiui:SukiWindow.Hosts>
+        <sukiui:SukiToastHost Manager="{Binding ToastManager}" />
+        <sukiui:SukiDialogHost Manager="{Binding DialogManager}" />
+    </sukiui:SukiWindow.Hosts>
+
+    <Grid ColumnDefinitions="Auto,*">
+        <sukiui:SukiSideMenu Grid.Column="0"
+                           x:Name="SideMenu"
+                           UseCustomContent="True"
+                           IsContentVisible="False">
+
+            <sukiui:SukiSideMenu.Styles>
+                <Style Selector="Image.Appicon">
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0.1"/>
+                        </Transitions>
+                    </Setter>
+                    <Style Selector="^:pointerover">
+                        <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledpacity}"/>
+                    </Style>
+                </Style>
+            </sukiui:SukiSideMenu.Styles>
+
+            <sukiui:SukiSideMenu.FooterContent>
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
+                    <StackPanel.Styles>
+                        <Style Selector="Button">
+                            <Setter Property="Command" Value="{Binding OpenUrlCommand}" />
+                        </Style>
+                        <Style Selector="avaloniaIcon|MaterialIcon">
+                            <Setter Property="Width" Value="20" />
+                            <Setter Property="Height" Value="20" />
+                            <Setter Property="Opacity" Value="0.7" />
+                        </Style>
+                    </StackPanel.Styles>
+                    <avaloniaIcon:MaterialIcon Kind="Github" ToolTip.Tip="项目主页" />
+                    <avaloniaIcon:MaterialIcon Kind="HelpCircleOutline" ToolTip.Tip="帮助文档" />
+                </StackPanel>
+            </sukiui:SukiSideMenu.FooterContent>
+        </sukiui:SukiSideMenu>
+
+        <ContentControl Grid.Column="1"
+                        Content="{Binding ActiveContent}"
+                        Margin="12,8,16,12"
+                        VerticalContentAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch" />
+    </Grid>
+</sukiui:SukiWindow>

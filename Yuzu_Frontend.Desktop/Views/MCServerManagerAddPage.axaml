@@ -1,0 +1,151 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Yuzu_Frontend.Desktop.Views;assembly=Yuzu_Frontend.Desktop"
+             xmlns:avaloniaIcon="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:sukiui="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+             xmlns:vm="clr-namespace:Yuzu_Frontend.Models;assembly=Yuzu_Frontend"
+             x:Class="Yuzu_Frontend.Desktop.Views.MCServerManagerAddPage"
+             x:DataType="local:MCServerManagerAddPage">
+
+    <Grid Margin="24,20,24,24">
+        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="添加MC服务端管理器" FontSize="18" FontWeight="SemiBold" />
+                    <TextBlock Text="创建新的MC服务端管理器并配置相关参数" Opacity="0.6" FontSize="12" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button x:Name="ResetButton"
+                            Click="ResetButton_Click"
+                            Classes="Flat Rounded"
+                            Height="34"
+                            FontSize="13">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <avaloniaIcon:MaterialIcon Kind="Refresh" Width="16" Height="16" />
+                            <TextBlock Text="重置" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <sukiui:GlassCard Grid.Row="1" Padding="24" IsAnimated="True">
+                <Grid RowDefinitions="Auto,Auto" RowSpacing="20">
+                    <Border x:Name="ErrorState"
+                            Grid.Row="0"
+                            Background="#FFF5F5"
+                            BorderBrush="#FFE0E0"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12"
+                            IsVisible="{Binding ViewModel.HasError}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <avaloniaIcon:MaterialIcon Kind="AlertCircle" Width="20" Height="20" Foreground="#FF6B6B" />
+                            <TextBlock Text="{Binding ViewModel.ErrorMessage}" FontSize="13" Foreground="#C0392B" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Grid.Row="1" Spacing="16">
+                        <Grid ColumnDefinitions="200,*" ColumnSpacing="16">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="服务端名称" FontSize="13" FontWeight="Medium" />
+                                <TextBlock Text="用于标识此MC服务端管理器" FontSize="11" Opacity="0.6" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBox x:Name="MCServerNameInput"
+                                         Text="{Binding ViewModel.MCServerName, Mode=TwoWay}"
+                                         FontSize="13"
+                                         PlaceholderText="输入服务端名称..."
+                                         TextChanged="OnFormInputChanged" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="200,*" ColumnSpacing="16">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="服务端类型" FontSize="13" FontWeight="Medium" />
+                                <TextBlock Text="选择MC服务端的类型" FontSize="11" Opacity="0.6" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <ComboBox x:Name="MCServerTypeInput"
+                                          ItemsSource="{Binding ViewModel.SupportedTypes}"
+                                          SelectedItem="{Binding ViewModel.MCServerType, Mode=TwoWay}"
+                                          FontSize="13" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="200,*" ColumnSpacing="16">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="服务端目录" FontSize="13" FontWeight="Medium" />
+                                <TextBlock Text="MC服务端文件所在的目录路径" FontSize="11" Opacity="0.6" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <TextBox x:Name="MCServerDirectoryInput"
+                                             Text="{Binding ViewModel.MCServerDirectory, Mode=TwoWay}"
+                                             FontSize="13"
+                                             PlaceholderText="输入服务端目录路径..."
+                                             TextChanged="OnFormInputChanged" />
+                                    <Button Click="BrowseDirectory_Click"
+                                            Classes="Flat Rounded"
+                                            Height="36"
+                                            Width="36">
+                                        <avaloniaIcon:MaterialIcon Kind="FolderOpen" Width="16" Height="16" />
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="200,*" ColumnSpacing="16">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="Java路径" FontSize="13" FontWeight="Medium" />
+                                <TextBlock Text="Java可执行文件的完整路径" FontSize="11" Opacity="0.6" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <TextBox x:Name="JavaPathInput"
+                                             Text="{Binding ViewModel.JavaPath, Mode=TwoWay}"
+                                             FontSize="13"
+                                             PlaceholderText="输入Java路径..."
+                                             TextChanged="OnFormInputChanged" />
+                                    <Button Click="BrowseJava_Click"
+                                            Classes="Flat Rounded"
+                                            Height="36"
+                                            Width="36">
+                                        <avaloniaIcon:MaterialIcon Kind="FolderOpen" Width="16" Height="16" />
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="200,*" ColumnSpacing="16">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="启动参数" FontSize="13" FontWeight="Medium" />
+                                <TextBlock Text="MC服务端的JVM启动参数（可选）" FontSize="11" Opacity="0.6" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBox x:Name="StartUpArgumentsInput"
+                                         Text="{Binding ViewModel.StartUpArguments, Mode=TwoWay}"
+                                         FontSize="13"
+                                         PlaceholderText="例如: -Xmx4G -Xms2G"
+                                         TextChanged="OnFormInputChanged" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </sukiui:GlassCard>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button x:Name="SubmitButton"
+                        Click="SubmitButton_Click"
+                        Classes="Flat Rounded"
+                        Height="34"
+                        FontSize="13"
+                        IsEnabled="{Binding ViewModel.CanSubmit}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <avaloniaIcon:MaterialIcon x:Name="SubmitIcon" Kind="Plus" Width="16" Height="16" />
+                        <TextBlock x:Name="SubmitText" Text="创建" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
